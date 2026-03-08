@@ -3,34 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WRT Team | Команда разработчиков</title>
-
-    <div style="
-    background: linear-gradient(135deg, #ff0000, #cc0000);
-    color: white;
-    text-align: center;
-    padding: 12px;
-    font-weight: bold;
-    font-size: 18px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 9999;
-    border-bottom: 3px solid #ff9900;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    animation: blinkWarning 1.5s infinite;
-">
-    ⚠️ САЙТ В РАЗРАБОТКЕ | Ничего не работает | Информация не настоящая! ⚠️
-</div>
-
-<style>
-@keyframes blinkWarning {
-    0% { background: linear-gradient(135deg, #ff0000, #cc0000); }
-    50% { background: linear-gradient(135deg, #cc0000, #990000); }
-    100% { background: linear-gradient(135deg, #ff0000, #cc0000); }
-}
-</style>
+    <title>WRT Team | Сайт в разработке</title>
     
     <!-- Font Awesome для иконок -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -41,13 +14,172 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         
-        body {
+        /* ТЕМНАЯ ТЕМА (по умолчанию) */
+        body.dark-theme {
             background: linear-gradient(135deg, #0a0c10, #14181f);
             color: #fff;
-            min-height: 100vh;
-            overflow-x: hidden;
+        }
+        
+        body.dark-theme .bg-animation span {
+            background: rgba(59, 130, 246, 0.3);
+        }
+        
+        body.dark-theme nav {
+            background: rgba(10, 15, 25, 0.8);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        body.dark-theme .nav-links a {
+            color: #fff;
+        }
+        
+        body.dark-theme .about,
+        body.dark-theme .projects {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        body.dark-theme .tech-card,
+        body.dark-theme .project-card,
+        body.dark-theme .contact-info,
+        body.dark-theme .contact-form,
+        body.dark-theme .stat-item {
+            background: rgba(22, 27, 34, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        body.dark-theme .contact-detail {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        body.dark-theme footer {
+            background: rgba(10, 15, 25, 0.9);
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        /* СВЕТЛАЯ ТЕМА */
+        body.light-theme {
+            background: linear-gradient(135deg, #f0f4fa, #e6ecf5);
+            color: #1a2639;
+        }
+        
+        body.light-theme .bg-animation span {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        
+        body.light-theme nav {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        body.light-theme .nav-links a {
+            color: #1a2639;
+        }
+        
+        body.light-theme .about,
+        body.light-theme .projects {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        body.light-theme .tech-card,
+        body.light-theme .project-card,
+        body.light-theme .contact-info,
+        body.light-theme .contact-form,
+        body.light-theme .stat-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #1a2639;
+        }
+        
+        body.light-theme .tech-card p,
+        body.light-theme .project-card p,
+        body.light-theme .contact-info p,
+        body.light-theme .stat-label {
+            color: #2d3a5e;
+        }
+        
+        body.light-theme .contact-detail {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        body.light-theme footer {
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        body.light-theme .footer-text {
+            color: #2d3a5e;
+        }
+        
+        body.light-theme .section-title {
+            color: #1a2639;
+        }
+        
+        body.light-theme .about-text p {
+            color: #2d3a5e;
+        }
+        
+        /* СТРОКА ПРЕДУПРЕЖДЕНИЯ (поверх всего) */
+        .dev-warning {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 18px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            border-bottom: 3px solid #ff9900;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            animation: blinkWarning 1.5s infinite;
+        }
+        
+        @keyframes blinkWarning {
+            0% { background: linear-gradient(135deg, #ff0000, #cc0000); }
+            50% { background: linear-gradient(135deg, #cc0000, #990000); }
+            100% { background: linear-gradient(135deg, #ff0000, #cc0000); }
+        }
+        
+        /* КНОПКА ПЕРЕКЛЮЧЕНИЯ ТЕМЫ */
+        .theme-toggle {
+            background: transparent;
+            border: 2px solid #3b82f6;
+            color: #3b82f6;
+            padding: 8px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-left: 20px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .theme-toggle:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        body.light-theme .theme-toggle {
+            border-color: #1a2639;
+            color: #1a2639;
+        }
+        
+        body.light-theme .theme-toggle:hover {
+            background: #1a2639;
+            color: white;
+        }
+        
+        /* ОТСТУП ДЛЯ КОНТЕНТА (чтобы не перекрывало предупреждением) */
+        .content-offset {
+            margin-top: 60px;
         }
         
         /* Анимированный фон */
@@ -66,7 +198,6 @@
             display: block;
             width: 2px;
             height: 2px;
-            background: rgba(59, 130, 246, 0.3);
             border-radius: 50%;
             animation: float 15s linear infinite;
             opacity: 0;
@@ -89,25 +220,27 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px 50px;
-            background: rgba(10, 15, 25, 0.8);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             position: fixed;
             width: 100%;
-            top: 0;
+            top: 48px; /* Учитываем строку предупреждения */
             z-index: 1000;
         }
         
         .logo {
             font-size: 28px;
             font-weight: 900;
-            background: linear-gradient(135deg, #fff, #3b82f6);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+        
         .nav-links a {
-            color: #fff;
             text-decoration: none;
             margin-left: 30px;
             font-size: 16px;
@@ -153,7 +286,7 @@
             font-size: 80px;
             font-weight: 900;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, #fff, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: titleGlow 3s ease-in-out infinite;
@@ -166,9 +299,16 @@
         
         .hero p {
             font-size: 24px;
-            color: #8b949e;
             margin-bottom: 40px;
             letter-spacing: 2px;
+        }
+        
+        body.dark-theme .hero p {
+            color: #8b949e;
+        }
+        
+        body.light-theme .hero p {
+            color: #4a5568;
         }
         
         .hero-buttons {
@@ -201,26 +341,35 @@
         
         .btn-outline {
             background: transparent;
-            color: white;
+            color: #3b82f6;
             border: 2px solid #3b82f6;
         }
         
         .btn-outline:hover {
             background: #3b82f6;
+            color: white;
             transform: translateY(-3px);
+        }
+        
+        body.light-theme .btn-outline {
+            color: #1a2639;
+            border-color: #1a2639;
+        }
+        
+        body.light-theme .btn-outline:hover {
+            background: #1a2639;
+            color: white;
         }
         
         /* Секция О нас */
         .about {
             padding: 100px 50px;
-            background: rgba(0, 0, 0, 0.3);
         }
         
         .section-title {
             text-align: center;
             font-size: 48px;
             margin-bottom: 60px;
-            color: #fff;
         }
         
         .section-title span {
@@ -239,7 +388,14 @@
         .about-text {
             font-size: 18px;
             line-height: 1.8;
+        }
+        
+        body.dark-theme .about-text {
             color: #8b949e;
+        }
+        
+        body.light-theme .about-text {
+            color: #4a5568;
         }
         
         .about-text p {
@@ -255,9 +411,7 @@
         .stat-item {
             text-align: center;
             padding: 30px;
-            background: rgba(22, 27, 34, 0.5);
             border-radius: 20px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
             backdrop-filter: blur(10px);
         }
         
@@ -269,8 +423,15 @@
         }
         
         .stat-label {
-            color: #8b949e;
             font-size: 16px;
+        }
+        
+        body.dark-theme .stat-label {
+            color: #8b949e;
+        }
+        
+        body.light-theme .stat-label {
+            color: #4a5568;
         }
         
         /* Технологии */
@@ -287,18 +448,16 @@
         }
         
         .tech-card {
-            background: rgba(22, 27, 34, 0.5);
             backdrop-filter: blur(10px);
             padding: 40px 20px;
             border-radius: 30px;
             text-align: center;
-            border: 1px solid rgba(59, 130, 246, 0.2);
             transition: all 0.3s;
         }
         
         .tech-card:hover {
             transform: translateY(-10px);
-            border-color: #3b82f6;
+            border-color: #3b82f6 !important;
             box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
         }
         
@@ -318,14 +477,12 @@
         }
         
         .tech-card p {
-            color: #8b949e;
             font-size: 14px;
         }
         
         /* Проекты */
         .projects {
             padding: 100px 50px;
-            background: rgba(0, 0, 0, 0.3);
         }
         
         .projects-grid {
@@ -337,17 +494,15 @@
         }
         
         .project-card {
-            background: rgba(22, 27, 34, 0.5);
             backdrop-filter: blur(10px);
             border-radius: 30px;
             overflow: hidden;
-            border: 1px solid rgba(59, 130, 246, 0.2);
             transition: all 0.3s;
         }
         
         .project-card:hover {
             transform: translateY(-10px);
-            border-color: #3b82f6;
+            border-color: #3b82f6 !important;
         }
         
         .project-img {
@@ -374,10 +529,17 @@
         }
         
         .project-info p {
-            color: #8b949e;
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 20px;
+        }
+        
+        body.dark-theme .project-info p {
+            color: #8b949e;
+        }
+        
+        body.light-theme .project-info p {
+            color: #4a5568;
         }
         
         .project-tags {
@@ -408,15 +570,15 @@
             gap: 50px;
         }
         
-        .contact-info {
-            background: rgba(22, 27, 34, 0.5);
+        .contact-info,
+        .contact-form {
             backdrop-filter: blur(10px);
             padding: 50px;
             border-radius: 40px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
         }
         
-        .contact-info h3 {
+        .contact-info h3,
+        .contact-form h3 {
             font-size: 32px;
             margin-bottom: 30px;
             color: #3b82f6;
@@ -428,7 +590,6 @@
             gap: 20px;
             margin-bottom: 30px;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
             transition: all 0.3s;
         }
@@ -449,22 +610,8 @@
         }
         
         .contact-detail small {
-            color: #8b949e;
             font-size: 14px;
-        }
-        
-        .contact-form {
-            background: rgba(22, 27, 34, 0.5);
-            backdrop-filter: blur(10px);
-            padding: 50px;
-            border-radius: 40px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-        
-        .contact-form h3 {
-            font-size: 32px;
-            margin-bottom: 30px;
-            color: #3b82f6;
+            opacity: 0.7;
         }
         
         .form-group {
@@ -475,12 +622,23 @@
         .form-group textarea {
             width: 100%;
             padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(59, 130, 246, 0.2);
             border-radius: 15px;
-            color: white;
             font-size: 16px;
             transition: all 0.3s;
+        }
+        
+        body.dark-theme .form-group input,
+        body.dark-theme .form-group textarea {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+        
+        body.light-theme .form-group input,
+        body.light-theme .form-group textarea {
+            background: rgba(255, 255, 255, 0.8);
+            color: #1a2639;
         }
         
         .form-group input:focus,
@@ -497,11 +655,9 @@
         
         /* Футер */
         footer {
-            background: rgba(10, 15, 25, 0.9);
             backdrop-filter: blur(10px);
             padding: 50px;
             text-align: center;
-            border-top: 1px solid rgba(59, 130, 246, 0.2);
         }
         
         .social-links {
@@ -512,9 +668,16 @@
         }
         
         .social-links a {
-            color: #8b949e;
             font-size: 24px;
             transition: all 0.3s;
+        }
+        
+        body.dark-theme .social-links a {
+            color: #8b949e;
+        }
+        
+        body.light-theme .social-links a {
+            color: #4a5568;
         }
         
         .social-links a:hover {
@@ -523,8 +686,15 @@
         }
         
         .footer-text {
-            color: #8b949e;
             font-size: 14px;
+        }
+        
+        body.dark-theme .footer-text {
+            color: #8b949e;
+        }
+        
+        body.light-theme .footer-text {
+            color: #4a5568;
         }
         
         /* Адаптивность */
@@ -535,8 +705,18 @@
                 gap: 15px;
             }
             
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
             .nav-links a {
                 margin: 0 15px;
+            }
+            
+            .theme-toggle {
+                margin-left: 0;
+                margin-top: 10px;
             }
             
             .hero h1 {
@@ -564,10 +744,20 @@
             .about-stats {
                 grid-template-columns: 1fr;
             }
+            
+            .dev-warning {
+                font-size: 14px;
+                padding: 8px;
+            }
         }
     </style>
 </head>
-<body>
+<body class="dark-theme">
+    <!-- Строка предупреждения -->
+    <div class="dev-warning">
+        ⚠️ САЙТ В РАЗРАБОТКЕ | Ничего не работает | Информация не настоящая! ⚠️
+    </div>
+    
     <!-- Анимированный фон -->
     <div class="bg-animation" id="bgAnimation"></div>
     
@@ -580,186 +770,193 @@
             <a href="#tech">Технологии</a>
             <a href="#projects">Проекты</a>
             <a href="#contact">Контакты</a>
+            <!-- Кнопка смены темы -->
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i> Тема
+            </button>
         </div>
     </nav>
     
-    <!-- Главная секция -->
-    <section class="hero" id="home">
-        <div class="hero-content">
-            <h1>WRT Team</h1>
-            <p>✧ Разрабатываем будущее сегодня ✧</p>
-            <div class="hero-buttons">
-                <a href="#contact" class="btn btn-primary">Связаться с нами</a>
-                <a href="#projects" class="btn btn-outline">Наши проекты</a>
-            </div>
-        </div>
-    </section>
-    
-    <!-- О нас -->
-    <section class="about" id="about">
-        <h2 class="section-title"><span>О</span> нас</h2>
-        <div class="about-content">
-            <div class="about-text">
-                <p>Мы — WRT Team, команда разработчиков с опытом создания веб-приложений, игр и инструментов для разработчиков. Используем современные технологии и любим чистый код.</p>
-                <p>Наша специализация: Backend на PHP, Frontend на JavaScript, Desktop-приложения на DevelNext и работа с базами данных MySQL.</p>
-                <p>Мы не просто пишем код — мы создаём решения, которые помогают людям и бизнесу расти.</p>
-            </div>
-            <div class="about-stats">
-                <div class="stat-item">
-                    <div class="stat-number">5+</div>
-                    <div class="stat-label">Лет опыта</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">20+</div>
-                    <div class="stat-label">Проектов</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">10+</div>
-                    <div class="stat-label">Клиентов</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Поддержка</div>
+    <!-- Контент с отступом от предупреждения -->
+    <div class="content-offset">
+        <!-- Главная секция -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1>WRT Team</h1>
+                <p>✧ Разрабатываем будущее сегодня ✧</p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">Связаться с нами</a>
+                    <a href="#projects" class="btn btn-outline">Наши проекты</a>
                 </div>
             </div>
-        </div>
-    </section>
-    
-    <!-- Технологии -->
-    <section class="tech" id="tech">
-        <h2 class="section-title"><span>Наши</span> технологии</h2>
-        <div class="tech-grid">
-            <div class="tech-card">
-                <i class="fab fa-php"></i>
-                <h3>PHP</h3>
-                <p>Backend разработка, создание API и веб-приложений</p>
-            </div>
-            <div class="tech-card">
-                <i class="fab fa-js"></i>
-                <h3>JavaScript</h3>
-                <p>Frontend, интерактивные интерфейсы, анимации</p>
-            </div>
-            <div class="tech-card">
-                <i class="fab fa-java"></i>
-                <h3>DevelNext</h3>
-                <p>Десктоп-приложения, игры, инструменты</p>
-            </div>
-            <div class="tech-card">
-                <i class="fas fa-database"></i>
-                <h3>MySQL</h3>
-                <p>Базы данных, оптимизация запросов, проектирование</p>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Проекты -->
-    <section class="projects" id="projects">
-        <h2 class="section-title"><span>Наши</span> проекты</h2>
-        <div class="projects-grid">
-            <div class="project-card">
-                <div class="project-img">
-                    <i class="fas fa-globe"></i>
+        </section>
+        
+        <!-- О нас -->
+        <section class="about" id="about">
+            <h2 class="section-title"><span>О</span> нас</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Мы — WRT Team, команда разработчиков с опытом создания веб-приложений, игр и инструментов для разработчиков. Используем современные технологии и любим чистый код.</p>
+                    <p>Наша специализация: Backend на PHP, Frontend на JavaScript, Desktop-приложения на DevelNext и работа с базами данных MySQL.</p>
+                    <p>Мы не просто пишем код — мы создаём решения, которые помогают людям и бизнесу расти.</p>
                 </div>
-                <div class="project-info">
-                    <h3>Веб-платформа</h3>
-                    <p>Современная CRM-система для бизнеса на PHP и JavaScript</p>
-                    <div class="project-tags">
-                        <span class="tag">PHP</span>
-                        <span class="tag">JS</span>
-                        <span class="tag">MySQL</span>
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">5+</div>
+                        <div class="stat-label">Лет опыта</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">20+</div>
+                        <div class="stat-label">Проектов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">10+</div>
+                        <div class="stat-label">Клиентов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Поддержка</div>
                     </div>
                 </div>
             </div>
-            <div class="project-card">
-                <div class="project-img">
-                    <i class="fas fa-gamepad"></i>
+        </section>
+        
+        <!-- Технологии -->
+        <section class="tech" id="tech">
+            <h2 class="section-title"><span>Наши</span> технологии</h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <i class="fab fa-php"></i>
+                    <h3>PHP</h3>
+                    <p>Backend разработка, создание API и веб-приложений</p>
                 </div>
-                <div class="project-info">
-                    <h3>Игра "Космос"</h3>
-                    <p>2D платформер на DevelNext с уникальным геймплеем</p>
-                    <div class="project-tags">
-                        <span class="tag">DevelNext</span>
-                        <span class="tag">Java</span>
+                <div class="tech-card">
+                    <i class="fab fa-js"></i>
+                    <h3>JavaScript</h3>
+                    <p>Frontend, интерактивные интерфейсы, анимации</p>
+                </div>
+                <div class="tech-card">
+                    <i class="fab fa-java"></i>
+                    <h3>DevelNext</h3>
+                    <p>Десктоп-приложения, игры, инструменты</p>
+                </div>
+                <div class="tech-card">
+                    <i class="fas fa-database"></i>
+                    <h3>MySQL</h3>
+                    <p>Базы данных, оптимизация запросов, проектирование</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Проекты -->
+        <section class="projects" id="projects">
+            <h2 class="section-title"><span>Наши</span> проекты</h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-img">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="project-info">
+                        <h3>Веб-платформа</h3>
+                        <p>Современная CRM-система для бизнеса на PHP и JavaScript</p>
+                        <div class="project-tags">
+                            <span class="tag">PHP</span>
+                            <span class="tag">JS</span>
+                            <span class="tag">MySQL</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-img">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="project-info">
+                        <h3>Игра "Космос"</h3>
+                        <p>2D платформер на DevelNext с уникальным геймплеем</p>
+                        <div class="project-tags">
+                            <span class="tag">DevelNext</span>
+                            <span class="tag">Java</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-img">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="project-info">
+                        <h3>Telegram бот</h3>
+                        <p>Многофункциональный бот для автоматизации задач</p>
+                        <div class="project-tags">
+                            <span class="tag">PHP</span>
+                            <span class="tag">API</span>
+                            <span class="tag">MySQL</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="project-card">
-                <div class="project-img">
-                    <i class="fas fa-code"></i>
-                </div>
-                <div class="project-info">
-                    <h3>Telegram бот</h3>
-                    <p>Многофункциональный бот для автоматизации задач</p>
-                    <div class="project-tags">
-                        <span class="tag">PHP</span>
-                        <span class="tag">API</span>
-                        <span class="tag">MySQL</span>
+        </section>
+        
+        <!-- Контакты -->
+        <section class="contact" id="contact">
+            <h2 class="section-title"><span>Свяжитесь</span> с нами</h2>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3>Контакты</h3>
+                    <div class="contact-detail">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <p>wrt.team@example.com</p>
+                            <small>Ответим в течение часа</small>
+                        </div>
                     </div>
+                    <div class="contact-detail">
+                        <i class="fab fa-telegram"></i>
+                        <div>
+                            <p>@wrt_team</p>
+                            <small>Telegram для быстрой связи</small>
+                        </div>
+                    </div>
+                    <div class="contact-detail">
+                        <i class="fab fa-github"></i>
+                        <div>
+                            <p>github.com/wrt-team</p>
+                            <small>Наш Open Source код</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form">
+                    <h3>Написать нам</h3>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" placeholder="Ваше имя" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Email для ответа" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="Ваше сообщение..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Отправить</button>
+                    </form>
                 </div>
             </div>
-        </div>
-    </section>
-    
-    <!-- Контакты -->
-    <section class="contact" id="contact">
-        <h2 class="section-title"><span>Свяжитесь</span> с нами</h2>
-        <div class="contact-container">
-            <div class="contact-info">
-                <h3>Контакты</h3>
-                <div class="contact-detail">
-                    <i class="fas fa-envelope"></i>
-                    <div>
-                        <p>wrt.team@example.com</p>
-                        <small>Ответим в течение часа</small>
-                    </div>
-                </div>
-                <div class="contact-detail">
-                    <i class="fab fa-telegram"></i>
-                    <div>
-                        <p>@wrt_team</p>
-                        <small>Telegram для быстрой связи</small>
-                    </div>
-                </div>
-                <div class="contact-detail">
-                    <i class="fab fa-github"></i>
-                    <div>
-                        <p>github.com/wrt-team</p>
-                        <small>Наш Open Source код</small>
-                    </div>
-                </div>
+        </section>
+        
+        <!-- Футер -->
+        <footer>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-telegram"></i></a>
+                <a href="#"><i class="fab fa-vk"></i></a>
+                <a href="#"><i class="fas fa-envelope"></i></a>
             </div>
-            
-            <div class="contact-form">
-                <h3>Написать нам</h3>
-                <form id="contactForm">
-                    <div class="form-group">
-                        <input type="text" placeholder="Ваше имя" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" placeholder="Email для ответа" required>
-                    </div>
-                    <div class="form-group">
-                        <textarea placeholder="Ваше сообщение..." required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Отправить</button>
-                </form>
+            <div class="footer-text">
+                <p>⚡ WRT Team ⚡</p>
+                <p>Разрабатываем будущее сегодня © 2024</p>
             </div>
-        </div>
-    </section>
-    
-    <!-- Футер -->
-    <footer>
-        <div class="social-links">
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-telegram"></i></a>
-            <a href="#"><i class="fab fa-vk"></i></a>
-            <a href="#"><i class="fas fa-envelope"></i></a>
-        </div>
-        <div class="footer-text">
-            <p>⚡ WRT Team ⚡</p>
-            <p>Разрабатываем будущее сегодня © 2024</p>
-        </div>
-    </footer>
+        </footer>
+    </div>
     
     <script>
         // Анимация фона
@@ -770,7 +967,6 @@
                 star.style.left = Math.random() * 100 + '%';
                 star.style.animationDelay = Math.random() * 20 + 's';
                 star.style.animationDuration = 10 + Math.random() * 20 + 's';
-                star.style.background = `rgba(${59 + Math.random() * 100}, ${130 + Math.random() * 100}, ${246 + Math.random() * 100}, ${0.3 + Math.random() * 0.3})`;
                 bgAnimation.appendChild(star);
             }
         }
@@ -794,18 +990,21 @@
             this.reset();
         });
         
-        // Анимация при скролле
-        window.addEventListener('scroll', () => {
-            const cards = document.querySelectorAll('.tech-card, .project-card, .stat-item');
-            cards.forEach(card => {
-                const cardTop = card.getBoundingClientRect().top;
-                const windowHeight = window.innerHeight;
-                if (cardTop < windowHeight - 100) {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }
-            });
-        });
+        // Функция смены темы
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle i');
+            
+            if (body.classList.contains('dark-theme')) {
+                body.classList.remove('dark-theme');
+                body.classList.add('light-theme');
+                button.className = 'fas fa-sun';
+            } else {
+                body.classList.remove('light-theme');
+                body.classList.add('dark-theme');
+                button.className = 'fas fa-moon';
+            }
+        }
     </script>
 </body>
 </html>
