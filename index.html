@@ -3181,5 +3181,265 @@ setTimeout(()=>{
   updateJoystickVisibility();
 }, 200);
 </script>
+  <!-- Подключение Socket.IO -->
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+<script>
+// ============= ПОДКЛЮЧЕНИЕ К ВАШЕМУ СЕРВЕРУ =============
+let gameSocket = null;
+let isHost = false;
+let currentRoomId = null;
+
+// Адрес вашего VPS сервера
+const SERVER_URL = 'http://84.252.75.247:3001';
+
+// Функция подключения к серверу
+function connectToGameServer() {
+    if (gameSocket && gameSocket.connected) return;
+    
+    gameSocket = io(SERVER_URL, {
+        transports: ['websocket', 'polling'],
+        reconnection: true
+    });
+    
+    gameSocket.on('connect', () => {
+        console.log('✅ Подключено к игровому серверу');
+        setLobbyStatus('✅ Готов к игре');
+        
+        // Регистрируем игрока
+        gameSocket.emit('register', {
+            name: myNick,
+            elo: myElo
+        });
+    });
+    
+    gameSocket.on('registered', (data) => {
+        console.log('✅ Зарегистрирован:', data.id);
+    });
+    
+    gameSocket.on('match_found', (data) => {
+        console.log('🎯 Соперник найден!', data);
+        currentRoomId = data.roomId;
+        isHost = data.isHost;
+        
+        document.getElementById('lobbySearching').style.display = 'none';
+        document.getElementById('lobbyFoundSection').style.display = 'flex';
+        document.getElementById('lobbyFoundName').textContent = `⚡ ${data.opponent.name}`;
+        document.getElementById('lobbyFoundElo').textContent = `ELO ${data.opponent.elo}`;
+        
+        // Запускаем игру
+        setTimeout(() => {
+            startOnlineMatch(data.opponent, isHost);
+        }, 1000);
+    });
+    
+    gameSocket.on('waiting', (data) => {
+        setLobbyStatus(`⏳ В очереди... ${data.position} игроков`);
+    });
+    
+    gameSocket.on('game_start', (data) => {
+        console.log('🎮 Игра начинается!', data);
+        startOnlineMatch(data.players[1], false);
+    });
+    
+    gameSocket.on('game_move', (data) => {
+        // Получаем движение соперника
+        if (gs && gs.running && !isHost) {
+            applyOpponentMove(data);
+        }
+    });
+    
+    gameSocket.on('game_sync', (data) => {
+        // Синхронизация состояния
+        if (gs && gs.running && !isHost) {
+            syncGameState(data);
+        }
+    });
+    
+    gameSocket.on('game_end', (data) => {
+        console.log('🏆 Игра завершена:', data);
+        handleOnlineGameEnd(data);
+    });
+    
+    gameSocket.on('error', (data) => {
+        alert(data.message);
+        cancelSearch();
+    });
+    
+    gameSocket.on('disconnect', () => {
+        console.log('❌ Отключено от сервера');
+        setLobbyStatus('⚠️ Потеряно соединение');
+        if (isSearching) cancelSearch();
+    });
+}
+
+// Функция поиска соперника
+function findOnlineMatch() {
+    if (!gameSocket || !gameSocket.connected) {
+        connectToGameServer();
+        setTimeout(() => findOnlineMatch(), 1000);
+        return;
+    }
+    
+    isSearching = true;
+    gameSocket.emit('find_match');
+    
+    document.getElementById('lobbySearchSection').style.display = 'none';
+    document.getElementById('lobbySearching').style.display = 'flex';
+}
+
+// Функция создания комнаты (для игры с другом)
+function createPrivateRoom() {
+    if (!gameSocket || !gameSocket.connected) {
+        connectToGameServer();
+        setTimeout(() => createPrivateRoom(), 1000);
+        return;
+    }
+    
+    gameSocket.emit('create_room');
+    gameSocket.once('room_created', (data) => {
+        const roomCode = data.code;
+        setLobbyStatus(`🎮 Код комнаты: ${roomCode}`);
+        alert(`Код комнаты: ${roomCode}\nОтправь его другу!`);
+        
+        document.getElementById('lobbySearchSection').style.display = 'none';
+        document.getElementById('lobbySearching').style.display = 'flex';
+        document.getElementById('lobbySearchText').textContent = `Ожидаем игрока... Код: ${roomCode}`;
+    });
+}
+
+// Функция присоединения к комнате по коду
+function joinRoomByCode(code) {
+    if (!gameSocket || !gameSocket.connected) {
+        connectToGameServer();
+        setTimeout(() => joinRoomByCode(code), 1000);
+        return;
+    }
+    
+    gameSocket.emit('join_room', { code: code.toUpperCase() });
+}
+
+// Отмена поиска
+function cancelSearch() {
+    isSearching = false;
+    if (gameSocket) {
+        gameSocket.emit('cancel_search');
+    }
+    
+    document.getElementById('lobbySearching').style.display = 'none';
+    document.getElementById('lobbySearchSection').style.display = 'flex';
+    setLobbyStatus('✅ Поиск отменен');
+}
+
+// Запуск онлайн матча
+function startOnlineMatch(opponent, host) {
+    isHost = host;
+    gameMode = 'online';
+    p1CharIdx = equippedCat;
+    p2CharIdx = 3;
+    
+    document.getElementById('p1name').textContent = '🔴 ' + myNick;
+    document.getElementById('p1elo').textContent = 'ELO ' + myElo;
+    document.getElementById('p2name').textContent = '🔵 ' + opponent.name;
+    document.getElementById('p2elo').textContent = 'ELO ' + opponent.elo;
+    document.getElementById('hudDiff').textContent = '🌐 Онлайн матч';
+    
+    startGame();
+    
+    // Запускаем отправку действий
+    if (isHost) {
+        startHostSync();
+    } else {
+        startGuestSync();
+    }
+}
+
+let syncInterval = null;
+
+function startHostSync() {
+    if (syncInterval) clearInterval(syncInterval);
+    syncInterval = setInterval(() => {
+        if (gs && gs.running && gameSocket && gameSocket.connected) {
+            gameSocket.emit('game_sync', {
+                puck: gs.puck,
+                player1: gs.p1,
+                player2: gs.p2,
+                timeLeft: timeLeft
+            });
+        }
+    }, 1000 / 30);
+}
+
+function startGuestSync() {
+    if (syncInterval) clearInterval(syncInterval);
+    syncInterval = setInterval(() => {
+        if (gs && gs.running && gameSocket && gameSocket.connected) {
+            gameSocket.emit('game_move', {
+                x: gs.p1.x,
+                y: gs.p1.y,
+                vx: gs.p1.vx,
+                vy: gs.p1.vy
+            });
+        }
+    }, 1000 / 30);
+}
+
+function syncGameState(state) {
+    if (!gs || !gs.running) return;
+    gs.puck = state.puck;
+    gs.p1 = state.player1;
+    gs.p2 = state.player2;
+    timeLeft = state.timeLeft;
+    document.getElementById('s1').textContent = gs.p1.score;
+    document.getElementById('s2').textContent = gs.p2.score;
+}
+
+function applyOpponentMove(move) {
+    if (!gs || !gs.running) return;
+    gs.p1.x = move.x;
+    gs.p1.y = move.y;
+    gs.p1.vx = move.vx;
+    gs.p1.vy = move.vy;
+}
+
+function handleOnlineGameEnd(data) {
+    if (gs) {
+        gs.running = false;
+        
+        if (data.winner === 'me') {
+            // Победа
+            winStreak++;
+            myElo += getEloChange(myElo, true);
+        } else {
+            // Поражение
+            winStreak = 0;
+            myElo += getEloChange(myElo, false);
+        }
+        
+        writeSave();
+        updateMenuUI();
+        
+        // Показываем результат
+        document.getElementById('resScore').textContent = `${data.score1 || 0} : ${data.score2 || 0}`;
+        document.getElementById('resNewElo').textContent = myElo;
+        showScreen('result-screen');
+    }
+}
+
+// Переопределяем функции для онлайн режима
+const originalStartGame = startGame;
+startGame = function() {
+    if (gameMode === 'online') {
+        originalStartGame();
+    } else {
+        originalStartGame();
+    }
+};
+
+// Подключаемся при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    connectToGameServer();
+});
+</script>
 </body>
 </html>
