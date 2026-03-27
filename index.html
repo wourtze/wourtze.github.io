@@ -2251,5 +2251,366 @@ if(!deviceChosen){ document.getElementById('device-screen').classList.add('activ
 setTimeout(()=>{ renderPreviews(); initJoystick(); updateJoystickVisibility(); }, 200);
 </script>
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script>
+// ============================================================
+//  МУЛЬТИПЛЕЕР ЧЕРЕЗ VPS СЕРВЕР
+// ============================================================
+let gameSocket = null;
+let isSearching = false;
+let isHost = false;
+let currentRoomId = null;
+let syncInterval = null;
+let waitingTimer = null;
+
+const SERVER_URL = 'http://84.252.75.247:3001';
+
+function connectToGameServer() {
+    if (gameSocket && gameSocket.connected) {
+        console.log('✅ Уже подключен');
+        setLobbyStatus('✅ Подключен к серверу');
+        return;
+    }
+    
+    console.log('🔄 Подключаюсь к серверу:', SERVER_URL);
+    setLobbyStatus('🔄 Подключение...');
+    
+    gameSocket = io(SERVER_URL, { 
+        transports: ['websocket', 'polling'], 
+        reconnection: true,
+        timeout: 10000
+    });
+    
+    gameSocket.on('connect', () => {
+        console.log('✅ ПОДКЛЮЧЕНО К СЕРВЕРУ!');
+        setLobbyStatus('✅ Готов к игре');
+        
+        gameSocket.emit('register', { 
+            name: myNick || 'Игрок', 
+            elo: myElo || 1000 
+        });
+    });
+    
+    gameSocket.on('registered', (data) => { 
+        console.log('✅ Зарегистрирован на сервере, ID:', data.id);
+        setLobbyStatus('✅ Зарегистрирован, ищите игру!');
+    });
+    
+    gameSocket.on('match_found', (data) => {
+        console.log('🎯 СОПЕРНИК НАЙДЕН!', data);
+        currentRoomId = data.roomId;
+        isHost = data.isHost;
+        
+        document.getElementById('lobbySearching').style.display = 'none';
+        document.getElementById('lobbyFoundSection').style.display = 'flex';
+        document.getElementById('lobbyFoundName').textContent = `⚡ ${data.opponent.name}`;
+        document.getElementById('lobbyFoundElo').textContent = `ELO ${data.opponent.elo}`;
+        setLobbyStatus(`Соперник найден! ${data.opponent.name}`);
+        
+        setTimeout(() => { 
+            startOnlineMatch(data.opponent, isHost); 
+        }, 1500);
+    });
+    
+    gameSocket.on('waiting', (data) => {
+        console.log('⏳ В очереди:', data.position);
+        setLobbyStatus(`⏳ В очереди... ${data.position} игроков`);
+        if (document.getElementById('lobbySearchText')) {
+            document.getElementById('lobbySearchText').innerHTML = `Ищем соперника...<br><span style="font-size:0.9em">${data.position} игроков в очереди</span>`;
+        }
+    });
+    
+    gameSocket.on('room_created', (data) => {
+        console.log('🏠 Комната создана, код:', data.code);
+        const roomCode = data.code;
+        setLobbyStatus(`🎮 Код комнаты: ${roomCode}`);
+        if (document.getElementById('lobbySearchText')) {
+            document.getElementById('lobbySearchText').innerHTML = `Ожидаем игрока...<br><span style="font-size:1.4em; color:#ffd700">${roomCode}</span>`;
+        }
+        alert(`Код комнаты: ${roomCode}\nОтправь его другу!`);
+    });
+    
+    gameSocket.on('game_start', (data) => {
+        console.log('🎮 ИГРА НАЧИНАЕТСЯ!', data);
+        setLobbyStatus('Игра начинается!');
+        const opponent = data.players.find(p => p.id !== gameSocket.id);
+        if (opponent) {
+            startOnlineMatch(opponent, false);
+        }
+    });
+    
+    gameSocket.on('game_move', (data) => {
+        if (window.gs && window.gs.running && !isHost) {
+            applyOpponentMove(data);
+        }
+    });
+    
+    gameSocket.on('game_sync', (data) => {
+        if (window.gs && window.gs.running && !isHost) {
+            syncGameState(data);
+        }
+    });
+    
+    gameSocket.on('game_end', (data) => {
+        console.log('🏆 ИГРА ЗАВЕРШЕНА:', data);
+        handleOnlineGameEnd(data);
+    });
+    
+    gameSocket.on('error', (data) => {
+        console.error('❌ Ошибка сервера:', data);
+        alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
+        cancelSearch();
+    });
+    
+    gameSocket.on('disconnect', () => {
+        console.log('❌ Отключено от сервера');
+        setLobbyStatus('⚠️ Потеряно соединение');
+        if (isSearching) cancelSearch();
+    });
+    
+    gameSocket.on('connect_error', (error) => {
+        console.error('❌ Ошибка подключения:', error.message);
+        setLobbyStatus('⚠️ Не могу подключиться к серверу');
+    });
+}
+
+function findOnlineMatch() {
+    console.log('🔍 НАЖАТА КНОПКА ПОИСКА');
+    
+    if (!gameSocket || !gameSocket.connected) {
+        console.log('⚠️ Нет подключения, подключаюсь...');
+        setLobbyStatus('🔄 Подключаюсь к серверу...');
+        connectToGameServer();
+        setTimeout(() => findOnlineMatch(), 1500);
+        return;
+    }
+    
+    console.log('🔍 Ищу соперника... ELO:', myElo);
+    isSearching = true;
+    gameSocket.emit('find_match');
+    
+    document.getElementById('lobbySearchSection').style.display = 'none';
+    document.getElementById('lobbySearching').style.display = 'flex';
+    if (document.getElementById('lobbySearchText')) {
+        document.getElementById('lobbySearchText').innerHTML = 'Ищем соперника...<br><span style="font-size:0.8em">по вашему ELO</span>';
+    }
+    
+    let seconds = 0;
+    if (waitingTimer) clearInterval(waitingTimer);
+    waitingTimer = setInterval(() => {
+        if (!isSearching) { clearInterval(waitingTimer); return; }
+        seconds++;
+        const timerEl = document.getElementById('lobbySearchTimer');
+        if (timerEl) timerEl.textContent = seconds + ' сек';
+        if (seconds > 15 && document.getElementById('lobbySearchText')) {
+            document.getElementById('lobbySearchText').innerHTML = '⏳ Соперников пока нет...<br><span style="font-size:0.8em">Попробуйте создать комнату</span>';
+        }
+    }, 1000);
+}
+
+function createPrivateRoom() {
+    console.log('🏠 НАЖАТА КНОПКА СОЗДАНИЯ КОМНАТЫ');
+    
+    if (!gameSocket || !gameSocket.connected) {
+        console.log('⚠️ Нет подключения, подключаюсь...');
+        setLobbyStatus('🔄 Подключаюсь к серверу...');
+        connectToGameServer();
+        setTimeout(() => createPrivateRoom(), 1500);
+        return;
+    }
+    
+    console.log('🏠 Создаю приватную комнату...');
+    gameSocket.emit('create_room');
+    isSearching = true;
+    
+    document.getElementById('lobbySearchSection').style.display = 'none';
+    document.getElementById('lobbySearching').style.display = 'flex';
+    if (document.getElementById('lobbySearchText')) {
+        document.getElementById('lobbySearchText').innerHTML = 'Создаем комнату...';
+    }
+}
+
+function joinRoomByCode(code) {
+    console.log('🔑 НАЖАТА КНОПКА ВХОДА ПО КОДУ, код:', code);
+    
+    if (!code || code.length < 4) {
+        alert('Введите код комнаты (4-8 символов)!');
+        return;
+    }
+    
+    if (!gameSocket || !gameSocket.connected) {
+        console.log('⚠️ Нет подключения, подключаюсь...');
+        setLobbyStatus('🔄 Подключаюсь к серверу...');
+        connectToGameServer();
+        setTimeout(() => joinRoomByCode(code), 1500);
+        return;
+    }
+    
+    console.log('🔑 Присоединяюсь к комнате:', code.toUpperCase());
+    gameSocket.emit('join_room', { code: code.toUpperCase() });
+    
+    document.getElementById('lobbySearchSection').style.display = 'none';
+    document.getElementById('lobbySearching').style.display = 'flex';
+    if (document.getElementById('lobbySearchText')) {
+        document.getElementById('lobbySearchText').innerHTML = `Присоединяемся к комнате<br><span style="font-size:1.2em; color:#ffd700">${code.toUpperCase()}</span>`;
+    }
+    setLobbyStatus(`Присоединение к ${code.toUpperCase()}...`);
+}
+
+function cancelSearch() {
+    console.log('❌ Отмена поиска');
+    isSearching = false;
+    if (gameSocket && gameSocket.connected) {
+        gameSocket.emit('cancel_search');
+    }
+    if (waitingTimer) {
+        clearInterval(waitingTimer);
+        waitingTimer = null;
+    }
+    
+    document.getElementById('lobbySearching').style.display = 'none';
+    document.getElementById('lobbySearchSection').style.display = 'flex';
+    setLobbyStatus('✅ Поиск отменен');
+}
+
+function setLobbyStatus(text) { 
+    const el = document.getElementById('lobbyStatus'); 
+    if (el) el.textContent = text;
+    console.log('📌 Статус:', text);
+}
+
+function startOnlineMatch(opponent, host) {
+    console.log('🚀 ЗАПУСК ОНЛАЙН МАТЧА, хост:', host, 'соперник:', opponent);
+    isHost = host;
+    gameMode = 'online';
+    lastGameMode = 'online';
+    p1CharIdx = equippedCat;
+    p2CharIdx = 3;
+    
+    const p1nameEl = document.getElementById('p1name');
+    const p1eloEl = document.getElementById('p1elo');
+    const p2nameEl = document.getElementById('p2name');
+    const p2eloEl = document.getElementById('p2elo');
+    const hudDiffEl = document.getElementById('hudDiff');
+    
+    if (p1nameEl) p1nameEl.textContent = '🔴 ' + myNick;
+    if (p1eloEl) p1eloEl.textContent = 'ELO ' + myElo;
+    if (p2nameEl) p2nameEl.textContent = '🔵 ' + opponent.name;
+    if (p2eloEl) p2eloEl.textContent = 'ELO ' + opponent.elo;
+    if (hudDiffEl) hudDiffEl.textContent = '🌐 Онлайн матч';
+    
+    startGame();
+    
+    if (host) { 
+        startHostSync(); 
+        console.log('📡 Запущена синхронизация ХОСТА');
+    } else { 
+        startGuestSync(); 
+        console.log('📡 Запущена синхронизация ГОСТЯ');
+    }
+}
+
+function startHostSync() { 
+    if (syncInterval) clearInterval(syncInterval); 
+    syncInterval = setInterval(() => { 
+        if (window.gs && window.gs.running && gameSocket && gameSocket.connected) { 
+            gameSocket.emit('game_sync', { 
+                puck: window.gs.puck, 
+                player1: window.gs.p1, 
+                player2: window.gs.p2, 
+                timeLeft: window.timeLeft 
+            }); 
+        } 
+    }, 1000 / 30); 
+}
+
+function startGuestSync() { 
+    if (syncInterval) clearInterval(syncInterval); 
+    syncInterval = setInterval(() => { 
+        if (window.gs && window.gs.running && gameSocket && gameSocket.connected) { 
+            gameSocket.emit('game_move', { 
+                x: window.gs.p1.x, 
+                y: window.gs.p1.y, 
+                vx: window.gs.p1.vx, 
+                vy: window.gs.p1.vy 
+            }); 
+        } 
+    }, 1000 / 30); 
+}
+
+function syncGameState(state) { 
+    if (!window.gs || !window.gs.running) return; 
+    window.gs.puck = state.puck; 
+    window.gs.p1 = state.player1; 
+    window.gs.p2 = state.player2; 
+    window.timeLeft = state.timeLeft; 
+    const s1El = document.getElementById('s1');
+    const s2El = document.getElementById('s2');
+    const hudTimeEl = document.getElementById('hudTime');
+    if (s1El) s1El.textContent = window.gs.p1.score; 
+    if (s2El) s2El.textContent = window.gs.p2.score; 
+    if (hudTimeEl) {
+        const m = Math.floor(window.timeLeft/60), sec = window.timeLeft%60;
+        hudTimeEl.textContent = `${m}:${sec<10?'0'+sec:sec}`;
+    }
+}
+
+function applyOpponentMove(move) { 
+    if (!window.gs || !window.gs.running) return; 
+    window.gs.p1.x = move.x; 
+    window.gs.p1.y = move.y; 
+    window.gs.p1.vx = move.vx; 
+    window.gs.p1.vy = move.vy; 
+}
+
+function handleOnlineGameEnd(data) { 
+    console.log('🏁 Обработка окончания игры:', data);
+    if (syncInterval) clearInterval(syncInterval); 
+    if (window.gs) { 
+        window.gs.running = false; 
+        if (data.winner === 'me') { 
+            winStreak++; 
+            myElo += getEloChange(myElo, true); 
+        } else { 
+            winStreak = 0; 
+            myElo += getEloChange(myElo, false); 
+        } 
+        writeSave(); 
+        updateMenuUI(); 
+        
+        const resScoreEl = document.getElementById('resScore');
+        const resNewEloEl = document.getElementById('resNewElo');
+        const resTitleEl = document.getElementById('resTitle');
+        const resEmojiEl = document.getElementById('resEmoji');
+        
+        if (resScoreEl) resScoreEl.textContent = `${data.score1 || 0} : ${data.score2 || 0}`; 
+        if (resNewEloEl) resNewEloEl.textContent = myElo; 
+        if (resTitleEl) resTitleEl.textContent = data.winner === 'me' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ';
+        if (resEmojiEl) resEmojiEl.textContent = data.winner === 'me' ? '🏆' : '😿';
+        showScreen('result-screen'); 
+    } 
+}
+
+function showLobby() {
+    console.log('🏠 Открытие лобби');
+    showScreen('lobby');
+    connectToGameServer();
+    const lobbySearchSection = document.getElementById('lobbySearchSection');
+    const lobbySearching = document.getElementById('lobbySearching');
+    const lobbyFoundSection = document.getElementById('lobbyFoundSection');
+    const lobbyMyElo = document.getElementById('lobbyMyElo');
+    
+    if (lobbySearchSection) lobbySearchSection.style.display = 'flex';
+    if (lobbySearching) lobbySearching.style.display = 'none';
+    if (lobbyFoundSection) lobbyFoundSection.style.display = 'none';
+    if (lobbyMyElo) lobbyMyElo.textContent = myElo;
+    setLobbyStatus('🔄 Подключаюсь...');
+}
+
+// Добавляем переменную для совместимости
+window.netGuestKeys = { up: false, down: false, left: false, right: false, mx: null, my: null };
+
+console.log('✅ Скрипт мультиплеера загружен');
+console.log('📡 Адрес сервера:', SERVER_URL);
+</script>
 </body>
 </html>
