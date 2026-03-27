@@ -2249,8 +2249,6 @@ updateCoinsBar();
 const deviceChosen = localStorage.getItem('tk_device_chosen');
 if(!deviceChosen){ document.getElementById('device-screen').classList.add('active'); } else { document.getElementById('menu').classList.add('active'); updateMenuUI(); }
 setTimeout(()=>{ renderPreviews(); initJoystick(); updateJoystickVisibility(); }, 200);
-</script>
-  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
 // ============================================================
 //  МУЛЬТИПЛЕЕР ЧЕРЕЗ VPS СЕРВЕР
@@ -2262,7 +2260,7 @@ let currentRoomId = null;
 let syncInterval = null;
 let waitingTimer = null;
 
-const SERVER_URL = 'http://84.252.75.247:3001';
+const SERVER_URL = 'https://84.252.75.247:3001';
 
 function connectToGameServer() {
     if (gameSocket && gameSocket.connected) {
@@ -2610,7 +2608,7 @@ function showLobby() {
 window.netGuestKeys = { up: false, down: false, left: false, right: false, mx: null, my: null };
 
 console.log('✅ Скрипт мультиплеера загружен');
-console.log('📡 Адрес сервера:', SERVER_URL);
+console.log('📡 Адрес сервера:', const SERVER_URL = 'https://84.252.75.247:3001';);
 </script>
 </body>
 </html>
