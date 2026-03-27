@@ -2250,5 +2250,6 @@ const deviceChosen = localStorage.getItem('tk_device_chosen');
 if(!deviceChosen){ document.getElementById('device-screen').classList.add('active'); } else { document.getElementById('menu').classList.add('active'); updateMenuUI(); }
 setTimeout(()=>{ renderPreviews(); initJoystick(); updateJoystickVisibility(); }, 200);
 </script>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 </body>
 </html>
