@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>✨ EngMaster · с нуля до C1 + игры ✨</title>
+    <title>✨ EngMaster · с нуля до C1 ✨</title>
+    <!-- Font Awesome для иконок -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -16,7 +21,7 @@
         body {
             background: linear-gradient(145deg, #f9f7fe 0%, #eef2ff 100%);
             min-height: 100vh;
-            padding: 1rem 0.5rem 1.5rem;
+            padding: 1.5rem 1rem 2.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -83,107 +88,338 @@
             min-width: 0;
         }
 
-        /* шапка */
+        /* заголовок и уровень */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 2.2rem;
+            font-weight: 700;
             background: linear-gradient(135deg, #1e1b4b, #3730a3);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            letter-spacing: -0.5px;
         }
 
-        .level-badge {
+        /* блок авторизации */
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
             background: white;
-            padding: 0.4rem 1.2rem;
+            padding: 0.5rem 1.5rem;
             border-radius: 60px;
-            font-weight: 600;
-            border: 1px solid rgba(79,70,229,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        /* табы режимов */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4f46e5;
+        }
+
+        .btn-google {
+            background: white;
+            border: 1px solid #dadce0;
+            padding: 0.7rem 1.5rem;
+            border-radius: 60px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-google:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* топ игроков */
+        .leaderboard-section {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .leaderboard-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 40px;
+        }
+
+        .leaderboard-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .leaderboard-rank.top1 { background: #ffd700; color: #1e1b4b; }
+        .leaderboard-rank.top2 { background: #c0c0c0; color: #1e1b4b; }
+        .leaderboard-rank.top3 { background: #cd7f32; color: white; }
+
+        .leaderboard-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .leaderboard-score {
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        .my-rank {
+            margin-top: 12px;
+            padding: 10px;
+            background: #eef2ff;
+            border-radius: 40px;
+            text-align: center;
+        }
+
+        /* навигация по режимам */
         .mode-tabs {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-bottom: 1.8rem;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
             background: rgba(255,255,255,0.5);
-            padding: 0.5rem;
+            padding: 0.75rem;
             border-radius: 60px;
             backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.8);
         }
 
         .mode-btn {
             background: transparent;
             border: none;
-            padding: 0.7rem 1.4rem;
+            padding: 0.8rem 2rem;
             border-radius: 40px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: #334155;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            box-shadow: none;
+        }
+
+        .mode-btn i {
+            font-size: 1.2rem;
         }
 
         .mode-btn.active {
             background: #4f46e5;
             color: white;
-            box-shadow: 0 8px 16px -4px #4f46e5;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
         }
 
+        /* карточки/панели */
         .mode-panel {
             display: none;
+            animation: fade 0.3s ease;
         }
 
         .mode-panel.active-panel {
             display: block;
         }
 
-        /* карточки */
+        @keyframes fade {
+            from { opacity: 0.4; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* карточка */
         .flashcard-area {
             background: white;
-            border-radius: 40px;
-            padding: 1.8rem;
-            box-shadow: 0 30px 35px -15px rgba(0,0,0,0.15);
-            max-width: 650px;
+            border-radius: 48px;
+            padding: 2rem 2rem 2.5rem;
+            box-shadow: 0 30px 40px -20px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.5);
+            text-align: center;
+            max-width: 700px;
             margin: 0 auto;
         }
 
+        .card-img {
+            background: #f1f5f9;
+            border-radius: 36px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .card-img i {
-            font-size: 7rem;
+            font-size: 8rem;
             color: #1e293b;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.1));
         }
 
         .card-word {
-            font-size: 3.2rem;
+            font-size: 3.8rem;
             font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .card-transcription {
+            font-size: 1.5rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+
+        .card-translate {
+            font-size: 1.8rem;
+            color: #4f46e5;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .flash-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn {
             border: none;
             background: #eef2ff;
-            padding: 0.8rem 1.8rem;
+            padding: 0.9rem 2rem;
             border-radius: 60px;
             font-weight: 600;
+            font-size: 1.1rem;
+            color: #1e1b4b;
             cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+            border: 1px solid transparent;
         }
 
         .btn-primary {
             background: #4f46e5;
             color: white;
+            box-shadow: 0 12px 20px -8px #4f46e5;
         }
 
-        /* игры (отдельные вкладки) */
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: scale(1.02);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* проверочная */
+        .quiz-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 48px;
+            padding: 2.2rem;
+            box-shadow: 0 30px 40px -20px rgba(0,0,0,0.2);
+        }
+
+        .quiz-question {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .quiz-option {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 40px;
+            padding: 1.2rem 1.8rem;
+            font-size: 1.4rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-align: left;
+        }
+
+        .quiz-option.correct {
+            background: #22c55e;
+            border-color: #16a34a;
+            color: white;
+        }
+
+        .quiz-option.wrong {
+            background: #ef4444;
+            border-color: #b91c1c;
+            color: white;
+        }
+
+        /* игры */
         .game-container {
             background: white;
             border-radius: 40px;
@@ -220,63 +456,90 @@
             display: block;
         }
 
-        .match-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
-        .match-word { background: #1e293b; color: white; padding: 0.7rem 1.2rem; border-radius: 60px; }
-        .match-select { padding: 0.6rem; border-radius: 60px; border: 2px solid #cbd5e1; }
+        .match-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .match-word {
+            background: #1e293b;
+            color: white;
+            padding: 0.9rem 1.5rem;
+            border-radius: 60px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .match-select {
+            flex: 1.5;
+            padding: 0.9rem;
+            border-radius: 60px;
+            border: 2px solid #cbd5e1;
+            font-size: 1rem;
+            font-weight: 500;
+            background: white;
+        }
+
+        .speed-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+        }
 
         .speed-option {
             background: #f1f5f9;
-            padding: 0.8rem;
+            padding: 0.9rem 1.2rem;
             border-radius: 60px;
-            cursor: pointer;
+            flex: 1;
             text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
         }
 
         .scramble-display {
-            font-size: 2.6rem;
-            letter-spacing: 6px;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: 8px;
             background: #0f172a;
             color: white;
             padding: 1rem;
             border-radius: 30px;
+            text-align: center;
+            margin: 1.5rem 0;
         }
 
-        .footer-note { margin-top: 2rem; color: #475569; }
-
-        /* новое дополнение: блок "Путь к С1" */
-        .c1-progress {
-            background: #ffffffd0;
-            border-radius: 30px;
-            padding: 1.2rem 1.8rem;
-            margin-top: 1.8rem;
-            backdrop-filter: blur(4px);
-            border: 1px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
+        .scramble-input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 60px;
+            border: 2px solid #cbd5e1;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
         }
 
-        .progress-bar-bg {
-            height: 12px;
-            background: #e2e8f0;
-            border-radius: 20px;
-            flex: 1;
-            margin: 0 1rem;
+        .footer-note {
+            margin-top: 2rem;
+            text-align: center;
+            color: #64748b;
         }
 
-        .progress-fill {
-            width: 37%;
-            height: 12px;
-            background: #4f46e5;
-            border-radius: 20px;
-        }
-
-        .daily-goal i { color: #eab308; }
-
+        /* адаптивность */
         @media (max-width: 800px) {
-            .layout { flex-direction: column; }
-            .ad-sidebar { width: 100%; position: static; flex-direction: row; justify-content: space-around; }
+            .layout {
+                flex-direction: column;
+            }
+            .ad-sidebar {
+                width: 100%;
+                position: static;
+                flex-direction: row;
+                justify-content: space-around;
+            }
         }
     </style>
 </head>
@@ -293,48 +556,72 @@
 
     <div class="app-container">
         <div class="header">
-            <h1><i class="fas fa-graduation-cap"></i> EngC1 · карточки + игры</h1>
-            <div class="level-badge"><i class="fas fa-arrow-up"></i> A0 → C1 <i class="fas fa-bolt"></i></div>
+            <h1><i class="fas fa-graduation-cap"></i> EngC1 · Карточки & игры</h1>
+            
+            <!-- Блок авторизации Google -->
+            <div class="auth-section" id="authSection">
+                <button class="btn-google" id="googleSignInBtn">
+                    <i class="fab fa-google"></i> Войти через Google
+                </button>
+            </div>
         </div>
 
-        <!-- Основные режимы -->
+        <!-- Таблица лидеров -->
+        <div class="leaderboard-section" id="leaderboardSection" style="display:none;">
+            <div class="leaderboard-header">
+                <div class="leaderboard-title">
+                    <i class="fas fa-trophy" style="color:#ffd700;"></i> Топ игроков
+                </div>
+                <button class="btn-outline" id="refreshLeaderboardBtn" style="padding:0.5rem 1rem;">
+                    <i class="fas fa-sync-alt"></i> Обновить
+                </button>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <div style="text-align:center; padding:1rem;">Загрузка...</div>
+            </div>
+            <div class="my-rank" id="myRankDisplay"></div>
+        </div>
+
+        <!-- табы режимов -->
         <div class="mode-tabs">
             <button class="mode-btn active" data-mode="flash"><i class="fas fa-clone"></i> Карточки</button>
             <button class="mode-btn" data-mode="quiz"><i class="fas fa-check-double"></i> Проверочная</button>
-            <button class="mode-btn" data-mode="games"><i class="fas fa-gamepad"></i> Игры (3 окна)</button>
+            <button class="mode-btn" data-mode="games"><i class="fas fa-gamepad"></i> Игры</button>
         </div>
 
-        <!-- ПАНЕЛЬ КАРТОЧЕК -->
+        <!-- ********** ПАНЕЛЬ КАРТОЧЕК ********** -->
         <div id="panel-flash" class="mode-panel active-panel">
             <div class="flashcard-area">
-                <div class="card-img"><i id="flashIcon" class="fas fa-dog"></i></div>
+                <div class="card-img">
+                    <i id="flashIcon" class="fas fa-dog"></i>
+                </div>
                 <div class="card-word" id="flashWord">dog</div>
                 <div class="card-transcription" id="flashTrans">/dɒɡ/</div>
                 <div class="card-translate" id="flashTranslate">собака</div>
-                <div style="display:flex; gap:1rem; margin:1.5rem 0; flex-wrap:wrap;">
+                <div class="flash-actions">
                     <button class="btn btn-primary" id="nextFlashBtn"><i class="fas fa-arrow-right"></i> Следующая</button>
                     <button class="btn btn-outline" id="speakFlashBtn"><i class="fas fa-volume-up"></i> Озвучить</button>
-                    <button class="btn btn-outline" id="flipHintBtn"><i class="fas fa-lightbulb"></i> Перевод</button>
+                    <button class="btn btn-outline" id="flipHintBtn"><i class="fas fa-lightbulb"></i> Подсказка</button>
                 </div>
-                <div><span id="cardIndexDisplay">1/12</span></div>
+                <div style="margin-top: 1.2rem; color:#64748b;"><span id="cardIndexDisplay">1/12</span> · карточка</div>
             </div>
         </div>
 
-        <!-- ПРОВЕРОЧНАЯ -->
+        <!-- ********** ПРОВЕРОЧНАЯ ********** -->
         <div id="panel-quiz" class="mode-panel">
-            <div class="flashcard-area">
+            <div class="quiz-container">
                 <div class="quiz-question" id="quizQuestion">Выберите перевод:</div>
-                <div class="quiz-options" id="quizOptions" style="display:grid; gap:0.8rem;"></div>
-                <div id="quizFeedback" style="min-height:2.5rem;"></div>
-                <button class="btn btn-primary" id="nextQuizBtn"><i class="fas fa-forward"></i> Следующий</button>
-                <div style="display:flex; justify-content:space-between; margin-top:1rem;">
-                    <span>🏆 Счёт: <span id="quizScore">0</span></span>
-                    <span>🔥 Серия: <span id="quizStreak">0</span></span>
+                <div class="quiz-options" id="quizOptions"></div>
+                <div class="quiz-feedback" id="quizFeedback"></div>
+                <button class="btn btn-primary" id="nextQuizBtn" style="width:100%;"><i class="fas fa-forward"></i> Следующий вопрос</button>
+                <div style="margin-top:1rem; display:flex; justify-content:space-between;">
+                    <span><i class="far fa-star"></i> Счёт: <span id="quizScore">0</span></span>
+                    <span><i class="fas fa-fire"></i> Серия: <span id="quizStreak">0</span></span>
                 </div>
             </div>
         </div>
 
-        <!-- ИГРЫ (с внутренними вкладками) -->
+        <!-- ********** ИГРЫ ********** -->
         <div id="panel-games" class="mode-panel">
             <div class="game-container">
                 <div class="game-tabs-inner">
@@ -342,42 +629,38 @@
                     <div class="game-tab" data-game="speed">⚡ Быстрый выбор</div>
                     <div class="game-tab" data-game="scramble">🧩 Собери слово</div>
                 </div>
-                <!-- игра 1 -->
+                
                 <div id="game-match" class="game-pane active">
                     <h3 style="margin-bottom:1rem;"><i class="fas fa-handshake"></i> Соотнеси слово и перевод</h3>
                     <div id="matchGameArea"></div>
-                    <button class="btn btn-outline" id="newMatchBtn"><i class="fas fa-sync-alt"></i> Новый раунд</button>
+                    <button class="btn btn-outline" id="newMatchBtn" style="margin-top:1rem;"><i class="fas fa-sync-alt"></i> Новый раунд</button>
                     <div id="matchResult" style="margin-top:1rem;"></div>
                 </div>
-                <!-- игра 2 -->
+
                 <div id="game-speed" class="game-pane">
-                    <h3><i class="fas fa-stopwatch"></i> Быстрый выбор</h3>
-                    <div id="speedQuestion" style="font-size:2.2rem; margin:1rem 0;">apple</div>
+                    <h3 style="margin-bottom:1rem;"><i class="fas fa-stopwatch"></i> Быстрый выбор</h3>
+                    <div id="speedQuestion" style="font-size:2.2rem; margin:1rem 0; font-weight:700;">apple</div>
                     <div id="speedOptions" style="display:grid; gap:0.8rem; grid-template-columns:1fr 1fr;"></div>
-                    <div style="margin-top:1.2rem;"><span id="speedFeedback"></span> <span id="speedStreak" style="float:right;">🔥0</span></div>
-                    <button class="btn btn-outline" id="nextSpeedBtn">Дальше</button>
+                    <div style="margin-top:1.2rem; display:flex; justify-content:space-between;">
+                        <span id="speedFeedback"></span>
+                        <span id="speedStreak">🔥0</span>
+                    </div>
+                    <button class="btn btn-outline" id="nextSpeedBtn" style="margin-top:1rem;">Дальше</button>
                 </div>
-                <!-- игра 3 -->
+
                 <div id="game-scramble" class="game-pane">
-                    <h3><i class="fas fa-jigsaw-piece"></i> Расшифруй слово</h3>
+                    <h3 style="margin-bottom:1rem;"><i class="fas fa-jigsaw-piece"></i> Расшифруй слово</h3>
                     <div class="scramble-display" id="scrambleWord">pplea</div>
-                    <input type="text" id="scrambleInput" class="scramble-input" placeholder="Введи слово" style="width:100%; padding:0.8rem; border-radius:60px; margin:1rem 0;">
-                    <button class="btn btn-primary" id="checkScrambleBtn">Проверить</button>
-                    <button class="btn btn-outline" id="newScrambleBtn" style="margin-top:0.5rem;">Новое слово</button>
-                    <div id="scrambleResult"></div>
+                    <input type="text" id="scrambleInput" class="scramble-input" placeholder="Введи слово" autocomplete="off">
+                    <button class="btn btn-primary" id="checkScrambleBtn" style="width:100%;"><i class="fas fa-check"></i> Проверить</button>
+                    <button class="btn btn-outline" id="newScrambleBtn" style="margin-top:0.8rem; width:100%;">Новое слово</button>
+                    <div id="scrambleResult" style="margin-top:0.8rem;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- ДОПОЛНИТЕЛЬНЫЙ БЛОК "ОТ СЕБЯ" — прогресс до C1 и совет дня -->
-        <div class="c1-progress">
-            <div><i class="fas fa-rocket"></i> Путь к C1: <span id="progressPercent">37%</span></div>
-            <div class="progress-bar-bg"><div class="progress-fill" id="progressFill" style="width:37%"></div></div>
-            <div class="daily-goal"><i class="fas fa-calendar-check"></i> Цель: 10 карточек</div>
-            <div style="margin-left:1rem;"><i class="fas fa-lightbulb" style="color:#fbbf24;"></i> <span id="dailyTip">Слушай подкасты</span></div>
-        </div>
         <div class="footer-note">
-            <i class="fas fa-brain"></i> Учись системно · каждый день +1% к C1
+            <i class="fas fa-brain"></i> Учись с нуля до продвинутого — картинки + игры
         </div>
     </div>
 
@@ -393,7 +676,29 @@
 
 <script>
     (function(){
-        // БАЗА СЛОВ
+        "use strict";
+
+        // ========== FIREBASE КОНФИГУРАЦИЯ ==========
+        // ЗАМЕНИТЕ НА СВОИ ДАННЫЕ ИЗ FIREBASE CONSOLE!
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUR9csqxZx5oHxC_lUH1DMsI_kVHGIB3Y"
+            authDomain: "engc121.firebaseapp.com",
+             projectId: "engc121",
+         storageBucket: "engc121.firebasestorage.app",
+           messagingSenderId: "251733245918",
+         appId: "1:251733245918:web:dadbcf9eb012a1ca8aa74f",
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+        let currentUser = null;
+        let userScore = 0;
+        
+        // База слов
         const vocabulary = [
             { word: "dog", transcription: "/dɒɡ/", translate: "собака", icon: "fa-dog" },
             { word: "cat", transcription: "/kæt/", translate: "кошка", icon: "fa-cat" },
@@ -405,3 +710,454 @@
             { word: "book", transcription: "/bʊk/", translate: "книга", icon: "fa-book" },
             { word: "big", transcription: "/bɪɡ/", translate: "большой", icon: "fa-up-right-and-down-left-from-center" },
             { word: "small", transcription: "/smɔːl/", translate: "маленький", icon: "fa-down-left-and-up-right-to-center" },
+            { word: "coffee", transcription: "/ˈkɒf.i/", translate: "кофе", icon: "fa-mug-saucer" },
+            { word: "beautiful", transcription: "/ˈbjuː.tɪ.fəl/", translate: "красивый", icon: "fa-feather" },
+        ];
+        const totalCards = vocabulary.length;
+        let currentCardIndex = 0;
+
+        // ========== АВТОРИЗАЦИЯ GOOGLE ==========
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+        const authSection = document.getElementById('authSection');
+        const leaderboardSection = document.getElementById('leaderboardSection');
+
+        // Вход через Google
+        googleSignInBtn.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                currentUser = result.user;
+                updateAuthUI();
+                await loadUserScore();
+                loadLeaderboard();
+            } catch (error) {
+                console.error('Ошибка входа:', error);
+                alert('Ошибка входа: ' + error.message);
+            }
+        });
+
+        // Выход
+        function signOut() {
+            auth.signOut();
+            currentUser = null;
+            updateAuthUI();
+            leaderboardSection.style.display = 'none';
+        }
+
+        // Обновление UI после авторизации
+        function updateAuthUI() {
+            if (currentUser) {
+                authSection.innerHTML = `
+                    <div class="user-info">
+                        <img src="${currentUser.photoURL || 'https://via.placeholder.com/40'}" class="user-avatar" alt="avatar">
+                        <span><strong>${currentUser.displayName || 'Игрок'}</strong></span>
+                    </div>
+                    <button class="btn-outline" onclick="window.signOut()" style="padding:0.5rem 1.5rem;">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                `;
+                leaderboardSection.style.display = 'block';
+            } else {
+                authSection.innerHTML = `
+                    <button class="btn-google" id="googleSignInBtn">
+                        <i class="fab fa-google"></i> Войти через Google
+                    </button>
+                `;
+                document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    try {
+                        const result = await auth.signInWithPopup(provider);
+                        currentUser = result.user;
+                        updateAuthUI();
+                        await loadUserScore();
+                        loadLeaderboard();
+                    } catch (error) {
+                        alert('Ошибка входа: ' + error.message);
+                    }
+                });
+                leaderboardSection.style.display = 'none';
+            }
+        }
+        window.signOut = signOut;
+
+        // ========== РАБОТА С ОЧКАМИ В FIRESTORE ==========
+        async function loadUserScore() {
+            if (!currentUser) return;
+            try {
+                const docRef = db.collection('users').doc(currentUser.uid);
+                const doc = await docRef.get();
+                if (doc.exists) {
+                    userScore = doc.data().score || 0;
+                } else {
+                    userScore = 0;
+                    await docRef.set({
+                        name: currentUser.displayName || 'Игрок',
+                        email: currentUser.email,
+                        photoURL: currentUser.photoURL || '',
+                        score: 0,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки очков:', error);
+            }
+        }
+
+        async function addScore(points) {
+            if (!currentUser) {
+                alert('Войдите через Google, чтобы сохранять прогресс!');
+                return false;
+            }
+            userScore += points;
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    score: userScore,
+                    name: currentUser.displayName || 'Игрок',
+                    photoURL: currentUser.photoURL || '',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                loadLeaderboard();
+                return true;
+            } catch (error) {
+                console.error('Ошибка обновления очков:', error);
+                return false;
+            }
+        }
+
+        // ========== ТАБЛИЦА ЛИДЕРОВ ==========
+        async function loadLeaderboard() {
+            const listEl = document.getElementById('leaderboardList');
+            const myRankEl = document.getElementById('myRankDisplay');
+            
+            try {
+                const snapshot = await db.collection('users')
+                    .orderBy('score', 'desc')
+                    .limit(10)
+                    .get();
+                
+                const players = [];
+                snapshot.forEach(doc => {
+                    players.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Отображение топ-10
+                if (players.length === 0) {
+                    listEl.innerHTML = '<div style="text-align:center; padding:1rem;">Нет игроков</div>';
+                } else {
+                    listEl.innerHTML = players.map((p, index) => {
+                        let rankClass = '';
+                        if (index === 0) rankClass = 'top1';
+                        else if (index === 1) rankClass = 'top2';
+                        else if (index === 2) rankClass = 'top3';
+                        
+                        return `
+                            <div class="leaderboard-item">
+                                <div class="leaderboard-rank ${rankClass}">${index + 1}</div>
+                                <img src="${p.photoURL || 'https://via.placeholder.com/35'}" class="leaderboard-avatar" alt="avatar">
+                                <span class="leaderboard-name">${p.name || 'Игрок'}</span>
+                                <span class="leaderboard-score">${p.score || 0} очков</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Отображение места текущего игрока
+                if (currentUser) {
+                    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+                    if (myDoc.exists) {
+                        const myScore = myDoc.data().score || 0;
+                        const allSnapshot = await db.collection('users').orderBy('score', 'desc').get();
+                        let myRank = 1;
+                        allSnapshot.forEach(doc => {
+                            if (doc.id === currentUser.uid) return;
+                            if (doc.data().score > myScore) myRank++;
+                        });
+                        myRankEl.innerHTML = `🏆 Ваше место: #${myRank} · ${myScore} очков`;
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки таблицы:', error);
+                listEl.innerHTML = '<div style="text-align:center; padding:1rem;">Ошибка загрузки</div>';
+            }
+        }
+
+        document.getElementById('refreshLeaderboardBtn').addEventListener('click', loadLeaderboard);
+
+        // Слушатель авторизации
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            updateAuthUI();
+            if (user) {
+                await loadUserScore();
+                loadLeaderboard();
+            }
+        });
+
+        // ========== КАРТОЧКИ ==========
+        const flashIcon = document.getElementById('flashIcon');
+        const flashWord = document.getElementById('flashWord');
+        const flashTrans = document.getElementById('flashTrans');
+        const flashTranslate = document.getElementById('flashTranslate');
+        const cardIndexDisplay = document.getElementById('cardIndexDisplay');
+
+        function updateFlashcard(index) {
+            const item = vocabulary[index];
+            flashIcon.className = `fas ${item.icon}`;
+            flashWord.textContent = item.word;
+            flashTrans.textContent = item.transcription;
+            flashTranslate.textContent = item.translate;
+            cardIndexDisplay.textContent = `${index+1}/${totalCards}`;
+        }
+
+        function speakWord(word) {
+            if (!window.speechSynthesis) return;
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'en-US';
+            speechSynthesis.cancel(); 
+            speechSynthesis.speak(utterance);
+        }
+
+        document.getElementById('nextFlashBtn').addEventListener('click', async () => {
+            if (currentUser) {
+                await addScore(5);
+            }
+            currentCardIndex = (currentCardIndex + 1) % totalCards;
+            updateFlashcard(currentCardIndex);
+        });
+        
+        document.getElementById('speakFlashBtn').addEventListener('click', () => {
+            speakWord(vocabulary[currentCardIndex].word);
+        });
+        
+        document.getElementById('flipHintBtn').addEventListener('click', () => {
+            alert(`Перевод: ${vocabulary[currentCardIndex].translate}\nТранскрипция: ${vocabulary[currentCardIndex].transcription}`);
+        });
+
+        // ========== ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ ==========
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const panels = {
+            flash: document.getElementById('panel-flash'),
+            quiz: document.getElementById('panel-quiz'),
+            games: document.getElementById('panel-games')
+        };
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                Object.values(panels).forEach(p => p.classList.remove('active-panel'));
+                panels[mode].classList.add('active-panel');
+                if (mode === 'quiz') generateQuiz();
+                if (mode === 'games') initGames();
+            });
+        });
+
+        // ========== ВНУТРЕННИЕ ВКЛАДКИ ИГР ==========
+        const gameTabs = document.querySelectorAll('.game-tab');
+        const gamePanes = {
+            match: document.getElementById('game-match'),
+            speed: document.getElementById('game-speed'),
+            scramble: document.getElementById('game-scramble')
+        };
+
+        gameTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const game = tab.dataset.game;
+                gameTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                Object.values(gamePanes).forEach(p => p.classList.remove('active'));
+                gamePanes[game].classList.add('active');
+            });
+        });
+
+        // ========== ИГРЫ ==========
+        function shuffleArray(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
+
+        // Matching
+        let matchWords = [];
+        function initMatchGame() {
+            const shuffled = shuffleArray([...vocabulary]).slice(0,4);
+            matchWords = shuffled;
+            const area = document.getElementById('matchGameArea');
+            const translations = shuffled.map(it => it.translate);
+            const shuffledTrans = shuffleArray([...translations]);
+            area.innerHTML = '';
+            shuffled.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'match-row';
+                row.innerHTML = `
+                    <div class="match-word">${item.word}</div>
+                    <select class="match-select">
+                        <option value="">-- выбери --</option>
+                        ${shuffledTrans.map(t => `<option value="${t}">${t}</option>`).join('')}
+                    </select>
+                `;
+                area.appendChild(row);
+            });
+            document.getElementById('matchResult').innerHTML = '';
+        }
+
+        document.getElementById('newMatchBtn').addEventListener('click', initMatchGame);
+        document.getElementById('matchGameArea').addEventListener('change', async function(e) {
+            if (!e.target.classList.contains('match-select')) return;
+            const selects = document.querySelectorAll('.match-select');
+            let correctCount = 0;
+            selects.forEach((sel) => {
+                const wordEl = sel.parentElement.querySelector('.match-word');
+                const word = wordEl.textContent;
+                const correctItem = vocabulary.find(v => v.word === word);
+                if (correctItem && sel.value === correctItem.translate) correctCount++;
+            });
+            const resultDiv = document.getElementById('matchResult');
+            if (correctCount === matchWords.length) {
+                resultDiv.innerHTML = '🎉 Отлично! Всё верно!';
+                if (currentUser) await addScore(20);
+            } else {
+                resultDiv.innerHTML = `✅ ${correctCount} из ${matchWords.length}`;
+            }
+        });
+
+        // Speed
+        let speedItem = null;
+        let speedStreak = 0;
+        const speedQuestion = document.getElementById('speedQuestion');
+        const speedOptionsDiv = document.getElementById('speedOptions');
+        const speedFeedback = document.getElementById('speedFeedback');
+        const speedStreakSpan = document.getElementById('speedStreak');
+
+        function newSpeedRound() {
+            speedItem = vocabulary[Math.floor(Math.random() * totalCards)];
+            speedQuestion.textContent = speedItem.word;
+            let opts = [speedItem.translate];
+            while(opts.length<4){
+                const t = vocabulary[Math.floor(Math.random()*totalCards)].translate;
+                if(!opts.includes(t)) opts.push(t);
+            }
+            opts = shuffleArray(opts);
+            speedOptionsDiv.innerHTML = '';
+            opts.forEach(tr => {
+                const btn = document.createElement('div');
+                btn.classList.add('speed-option');
+                btn.textContent = tr;
+                btn.addEventListener('click', async () => {
+                    if (tr === speedItem.translate) {
+                        speedStreak++;
+                        speedFeedback.textContent = '🔥 Верно!';
+                        if (currentUser) await addScore(10);
+                    } else {
+                        speedStreak = 0;
+                        speedFeedback.textContent = `❌ Неверно. (${speedItem.translate})`;
+                    }
+                    speedStreakSpan.textContent = `🔥${speedStreak}`;
+                });
+                speedOptionsDiv.appendChild(btn);
+            });
+            speedFeedback.textContent = '';
+        }
+        document.getElementById('nextSpeedBtn').addEventListener('click', newSpeedRound);
+
+        // Scramble
+        let scrambleCurrent = null;
+        function scrambleWord(w) {
+            return w.split('').sort(()=>Math.random()-0.5).join('');
+        }
+        function newScramble() {
+            scrambleCurrent = vocabulary[Math.floor(Math.random() * totalCards)];
+            document.getElementById('scrambleWord').textContent = scrambleWord(scrambleCurrent.word);
+            document.getElementById('scrambleInput').value = '';
+            document.getElementById('scrambleResult').textContent = '';
+        }
+        document.getElementById('newScrambleBtn').addEventListener('click', newScramble);
+        document.getElementById('checkScrambleBtn').addEventListener('click', async () => {
+            const input = document.getElementById('scrambleInput').value.trim().toLowerCase();
+            const resultDiv = document.getElementById('scrambleResult');
+            if (!scrambleCurrent) return;
+            if (input === scrambleCurrent.word) {
+                resultDiv.innerHTML = '🎯 Верно! Молодец!';
+                speakWord(scrambleCurrent.word);
+                if (currentUser) await addScore(15);
+            } else {
+                resultDiv.innerHTML = `❌ Попробуй ещё.`;
+            }
+        });
+
+        function initGames() {
+            initMatchGame();
+            newSpeedRound();
+            newScramble();
+        }
+
+        // ========== QUIZ ==========
+        let quizCurrent = null;
+        let quizScore = 0;
+        let quizStreak = 0;
+        let answered = false;
+        const quizQuestion = document.getElementById('quizQuestion');
+        const quizOptionsDiv = document.getElementById('quizOptions');
+        const quizFeedback = document.getElementById('quizFeedback');
+        const quizScoreSpan = document.getElementById('quizScore');
+        const quizStreakSpan = document.getElementById('quizStreak');
+        const nextQuizBtn = document.getElementById('nextQuizBtn');
+
+        function generateQuiz() {
+            answered = false;
+            quizFeedback.textContent = '';
+            const correctItem = vocabulary[Math.floor(Math.random() * totalCards)];
+            quizCurrent = correctItem;
+            quizQuestion.textContent = `Как переводится "${correctItem.word}"?`;
+
+            let options = [correctItem.translate];
+            while (options.length < 4) {
+                const rand = vocabulary[Math.floor(Math.random() * totalCards)].translate;
+                if (!options.includes(rand)) options.push(rand);
+            }
+            options = shuffleArray(options);
+            
+            quizOptionsDiv.innerHTML = '';
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.classList.add('quiz-option');
+                div.textContent = opt;
+                div.addEventListener('click', async (e) => {
+                    if (answered) return;
+                    answered = true;
+                    const allOpts = document.querySelectorAll('.quiz-option');
+                    if (opt === correctItem.translate) {
+                        div.classList.add('correct');
+                        quizScore++;
+                        quizStreak++;
+                        quizFeedback.innerHTML = '✅ Правильно! +10 очков';
+                        if (currentUser) await addScore(10);
+                    } else {
+                        div.classList.add('wrong');
+                        quizStreak = 0;
+                        quizFeedback.innerHTML = `❌ Неверно. Правильно: ${correctItem.translate}`;
+                        allOpts.forEach(el => { if(el.textContent === correctItem.translate) el.classList.add('correct'); });
+                    }
+                    quizScoreSpan.textContent = quizScore;
+                    quizStreakSpan.textContent = quizStreak;
+                });
+                quizOptionsDiv.appendChild(div);
+            });
+        }
+
+        nextQuizBtn.addEventListener('click', generateQuiz);
+
+        // Инициализация
+        updateFlashcard(0);
+        generateQuiz();
+        initGames();
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && panels.flash.classList.contains('active-panel')) {
+                e.preventDefault();
+                speakWord(vocabulary[currentCardIndex].word);
+            }
+        });
+    })();
+</script>
+</body>
+</html>
