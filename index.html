@@ -484,4 +484,238 @@
 
         // ----- БАЗА СЛОВ (A0 → C1) с иконками Font Awesome (эмуляция картинок) -----
         const vocabulary = [
-            { word: "
+            { word: "dog", transcription: "/dɒɡ/", translate: "собака", icon: "fa-dog" },
+            { word: "cat", transcription: "/kæt/", translate: "кошка", icon: "fa-cat" },
+            { word: "apple", transcription: "/ˈæp.əl/", translate: "яблоко", icon: "fa-apple" },
+            { word: "car", transcription: "/kɑːr/", translate: "машина", icon: "fa-car" },
+            { word: "house", transcription: "/haʊs/", translate: "дом", icon: "fa-house" },
+            { word: "happy", transcription: "/ˈhæp.i/", translate: "счастливый", icon: "fa-face-smile" },
+            { word: "run", transcription: "/rʌn/", translate: "бегать", icon: "fa-person-running" },
+            { word: "book", transcription: "/bʊk/", translate: "книга", icon: "fa-book" },
+            { word: "big", transcription: "/bɪɡ/", translate: "большой", icon: "fa-up-right-and-down-left-from-center" },
+            { word: "small", transcription: "/smɔːl/", translate: "маленький", icon: "fa-down-left-and-up-right-to-center" },
+            { word: "coffee", transcription: "/ˈkɒf.i/", translate: "кофе", icon: "fa-mug-saucer" },
+            { word: "beautiful", transcription: "/ˈbjuː.tɪ.fəl/", translate: "красивый", icon: "fa-feather" },
+        ];
+
+        // Текущий индекс карточки
+        let currentCardIndex = 0;
+        const totalCards = vocabulary.length;
+
+        // ----- ЭЛЕМЕНТЫ -----
+        const flashIcon = document.getElementById('flashIcon');
+        const flashWord = document.getElementById('flashWord');
+        const flashTrans = document.getElementById('flashTrans');
+        const flashTranslate = document.getElementById('flashTranslate');
+        const cardIndexDisplay = document.getElementById('cardIndexDisplay');
+        const nextFlashBtn = document.getElementById('nextFlashBtn');
+        const speakFlashBtn = document.getElementById('speakFlashBtn');
+        const flipHintBtn = document.getElementById('flipHintBtn');
+
+        // Обновление UI карточки
+        function updateFlashcard(index) {
+            const item = vocabulary[index];
+            flashIcon.className = `fas ${item.icon}`;
+            flashWord.textContent = item.word;
+            flashTrans.textContent = item.transcription;
+            flashTranslate.textContent = item.translate;
+            cardIndexDisplay.textContent = `${index+1}/${totalCards}`;
+        }
+
+        // озвучка (web speech)
+        function speakWord(word) {
+            if (!window.speechSynthesis) return;
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'en-US';
+            speechSynthesis.cancel(); 
+            speechSynthesis.speak(utterance);
+        }
+
+        // следующий флеш
+        nextFlashBtn.addEventListener('click', ()=>{
+            currentCardIndex = (currentCardIndex + 1) % totalCards;
+            updateFlashcard(currentCardIndex);
+        });
+        speakFlashBtn.addEventListener('click', ()=>{
+            speakWord(vocabulary[currentCardIndex].word);
+        });
+        flipHintBtn.addEventListener('click', ()=>{
+            alert(`Перевод: ${vocabulary[currentCardIndex].translate}\nТранскрипция: ${vocabulary[currentCardIndex].transcription}`);
+        });
+
+        // ========== QUIZ (ПРОВЕРОЧНАЯ) ==========
+        let quizCurrent = null;
+        let quizScore = 0;
+        let quizStreak = 0;
+        let answered = false;
+        const quizQuestion = document.getElementById('quizQuestion');
+        const quizOptionsDiv = document.getElementById('quizOptions');
+        const quizFeedback = document.getElementById('quizFeedback');
+        const quizScoreSpan = document.getElementById('quizScore');
+        const quizStreakSpan = document.getElementById('quizStreak');
+        const nextQuizBtn = document.getElementById('nextQuizBtn');
+
+        function generateQuiz() {
+            answered = false;
+            quizFeedback.textContent = '';
+            const correctItem = vocabulary[Math.floor(Math.random() * totalCards)];
+            quizCurrent = correctItem;
+            quizQuestion.textContent = `Как переводится "${correctItem.word}"?`;
+
+            // варианты: правильный + 3 случайных других
+            let options = [correctItem.translate];
+            while (options.length < 4) {
+                const rand = vocabulary[Math.floor(Math.random() * totalCards)].translate;
+                if (!options.includes(rand)) options.push(rand);
+            }
+            options = shuffleArray(options);
+            
+            quizOptionsDiv.innerHTML = '';
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.classList.add('quiz-option');
+                div.textContent = opt;
+                div.addEventListener('click', (e) => handleQuizAnswer(opt, correctItem.translate, div));
+                quizOptionsDiv.appendChild(div);
+            });
+            // сброс классов
+        }
+
+        function handleQuizAnswer(selected, correct, element) {
+            if (answered) return;
+            answered = true;
+            const allOpts = document.querySelectorAll('.quiz-option');
+            if (selected === correct) {
+                element.classList.add('correct');
+                quizScore++;
+                quizStreak++;
+                quizFeedback.innerHTML = '✅ Правильно! +1';
+            } else {
+                element.classList.add('wrong');
+                quizStreak = 0;
+                quizFeedback.innerHTML = `❌ Неверно. Правильно: ${correct}`;
+                allOpts.forEach(opt => { if(opt.textContent === correct) opt.classList.add('correct'); });
+            }
+            quizScoreSpan.textContent = quizScore;
+            quizStreakSpan.textContent = quizStreak;
+        }
+
+        nextQuizBtn.addEventListener('click', ()=>{
+            generateQuiz();
+        });
+
+        // ========== ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ ==========
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const panels = {
+            flash: document.getElementById('panel-flash'),
+            quiz: document.getElementById('panel-quiz'),
+            games: document.getElementById('panel-games')
+        };
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', ()=>{
+                const mode = btn.dataset.mode;
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                Object.values(panels).forEach(p => p.classList.remove('active-panel'));
+                panels[mode].classList.add('active-panel');
+                if (mode === 'quiz') generateQuiz();
+                if (mode === 'games') initGames(); 
+            });
+        });
+
+        // ========== ИГРЫ ==========
+        function shuffleArray(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
+
+        // Игра 1: Matching
+        let matchWords = [];
+        function initMatchGame() {
+            const shuffled = shuffleArray([...vocabulary]).slice(0,4);
+            matchWords = shuffled;
+            const area = document.getElementById('matchGameArea');
+            const translations = shuffled.map(it => it.translate);
+            const shuffledTrans = shuffleArray([...translations]);
+            area.innerHTML = '';
+            shuffled.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = 'match-row';
+                row.innerHTML = `
+                    <div class="match-word">${item.word}</div>
+                    <select class="match-select" data-index="${idx}">
+                        <option value="">-- выбери --</option>
+                        ${shuffledTrans.map(t => `<option value="${t}">${t}</option>`).join('')}
+                    </select>
+                `;
+                area.appendChild(row);
+            });
+            document.getElementById('matchResult').innerHTML = '';
+        }
+
+        document.getElementById('newMatchBtn').addEventListener('click', initMatchGame);
+        document.getElementById('matchGameArea').addEventListener('change', function(e) {
+            if (!e.target.classList.contains('match-select')) return;
+            const selects = document.querySelectorAll('.match-select');
+            let correctCount = 0;
+            selects.forEach((sel, i) => {
+                if (matchWords[i] && sel.value === matchWords[i].translate) correctCount++;
+            });
+            const resultDiv = document.getElementById('matchResult');
+            if (correctCount === matchWords.length) {
+                resultDiv.innerHTML = '🎉 Отлично! Всё верно!';
+            } else {
+                resultDiv.innerHTML = `✅ ${correctCount} из ${matchWords.length}`;
+            }
+        });
+
+        // Игра 2: speed choice
+        let speedItem = null;
+        let speedStreak = 0;
+        const speedQuestion = document.getElementById('speedQuestion');
+        const speedOptionsDiv = document.getElementById('speedOptions');
+        const speedFeedback = document.getElementById('speedFeedback');
+        const speedStreakSpan = document.getElementById('speedStreak');
+
+        function newSpeedRound() {
+            speedItem = vocabulary[Math.floor(Math.random() * totalCards)];
+            speedQuestion.textContent = speedItem.word;
+            let opts = [speedItem.translate];
+            while(opts.length<4){
+                const t = vocabulary[Math.floor(Math.random()*totalCards)].translate;
+                if(!opts.includes(t)) opts.push(t);
+            }
+            opts = shuffleArray(opts);
+            speedOptionsDiv.innerHTML = '';
+            opts.forEach(tr => {
+                const btn = document.createElement('div');
+                btn.classList.add('speed-option');
+                btn.textContent = tr;
+                btn.addEventListener('click', (e) => {
+                    if (tr === speedItem.translate) {
+                        speedStreak++;
+                        speedFeedback.textContent = '🔥 Верно!';
+                    } else {
+                        speedStreak = 0;
+                        speedFeedback.textContent = `❌ Неверно. (${speedItem.translate})`;
+                    }
+                    speedStreakSpan.textContent = `🔥${speedStreak}`;
+                });
+                speedOptionsDiv.appendChild(btn);
+            });
+            speedFeedback.textContent = '';
+        }
+        document.getElementById('nextSpeedBtn').addEventListener('click', newSpeedRound);
+
+        // Игра 3: Scramble
+        let scrambleCurrent = null;
+        function scrambleWord(w) {
+            return w.split('').sort(()=>Math.random()-0.5).join('');
+        }
+        function newScramble() {
+            scrambleCurrent = vocabulary[Math.floor(Math.random() * totalCards)];
+            document.getElementById('scrambleWord').textContent = scrambleWord(scrambleCurrent.word);
+            document.getElementById('scrambleInput').value = '';
+            document.getElementById('scrambleResult').textContent = '';
+        }
+        document.getElementById('newScrambleBtn').addEventListener('click', newScramble);
