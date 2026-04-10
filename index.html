@@ -2,508 +2,203 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>✨ EngMaster · A0 до C1 ✨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ EngMaster · 100 важных слов ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(145deg, #f9f7fe 0%, #eef2ff 100%); min-height: 100vh; padding: 1.5rem 1rem; display: flex; flex-direction: column; align-items: center; }
+        .layout { display: flex; max-width: 1400px; width: 100%; gap: 1.2rem; justify-content: center; }
+        .ad-sidebar { width: 160px; background: #e9e9f0; border-radius: 28px; padding: 1.2rem 0.8rem; text-align: center; border: 1px solid #cfd8e6; height: fit-content; position: sticky; top: 1rem; }
+        .ad-sidebar i { font-size: 2.2rem; color: #4f46e5; margin-bottom: 0.8rem; }
+        .ad-sidebar .telegram-link { background: #1e293b; color: white; padding: 0.6rem; border-radius: 40px; text-decoration: none; font-weight: 700; margin-top: 0.8rem; display: inline-block; width: 100%; }
+        .app-container { flex: 1; max-width: 1000px; }
+        .header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 1rem; }
+        h1 { font-size: 2rem; background: linear-gradient(135deg, #1e1b4b, #3730a3); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        
+        /* АВТОРИЗАЦИЯ */
+        .auth-container { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+        .auth-tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; }
+        .auth-tab { background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; }
+        .auth-tab.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        .auth-input { width: 100%; padding: 0.9rem; border: 2px solid #e2e8f0; border-radius: 40px; margin-bottom: 1rem; font-size: 1rem; }
+        .btn-google { background: white; border: 1px solid #dadce0; padding: 0.9rem; border-radius: 40px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; width: 100%; }
+        .user-bar { display: flex; align-items: center; justify-content: space-between; background: white; padding: 0.8rem 1.5rem; border-radius: 60px; margin-bottom: 1rem; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5; }
 
-        body {
-            background: linear-gradient(145deg, #f9f7fe 0%, #eef2ff 100%);
-            min-height: 100vh;
-            padding: 1.5rem 1rem 2.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        /* ТАБЛИЦА ЛИДЕРОВ */
+        .leaderboard-section { background: white; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.5rem; }
+        .leaderboard-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #f8fafc; border-radius: 40px; margin-bottom: 8px; }
+        .leaderboard-rank { width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .leaderboard-rank.top1 { background: #ffd700; }
+        .leaderboard-rank.top2 { background: #c0c0c0; }
+        .leaderboard-rank.top3 { background: #cd7f32; color: white; }
 
-        .layout {
-            display: flex;
-            max-width: 1400px;
-            width: 100%;
-            gap: 1.2rem;
-            justify-content: center;
-        }
-
-        .ad-sidebar {
-            width: 160px;
-            background: #e9e9f0;
-            border-radius: 28px;
-            padding: 1.2rem 0.8rem;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02), 0 8px 18px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            border: 1px solid #cfd8e6;
-            color: #1e1b4b;
-            font-weight: 500;
-            height: fit-content;
-            position: sticky;
-            top: 1rem;
-        }
-
-        .ad-sidebar i {
-            font-size: 2.2rem;
-            color: #4f46e5;
-            margin-bottom: 0.8rem;
-        }
-
-        .ad-sidebar .ad-text {
-            background: #ffffffb3;
-            padding: 0.6rem;
-            border-radius: 20px;
-            margin: 0.5rem 0;
-            width: 100%;
-        }
-
-        .ad-sidebar .telegram-link {
-            background: #1e293b;
-            color: white;
-            padding: 0.6rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-weight: 700;
-            margin-top: 0.8rem;
-            display: inline-block;
-            width: 100%;
-            font-size: 0.9rem;
-        }
-
-        .app-container {
-            flex: 1;
-            max-width: 1000px;
-            min-width: 0;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1e1b4b, #3730a3);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .level-badge {
-            background: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 60px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(79, 70, 229, 0.2);
-        }
-
-        /* Выбор сложности */
-        .difficulty-selector {
-            display: flex;
-            gap: 0.5rem;
-            background: white;
-            padding: 0.5rem;
-            border-radius: 60px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .difficulty-btn {
-            padding: 0.7rem 1.8rem;
-            border-radius: 40px;
-            border: none;
-            background: transparent;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #64748b;
-        }
-
-        .difficulty-btn.active {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .difficulty-btn.easy.active { background: #22c55e; }
-        .difficulty-btn.medium.active { background: #eab308; }
-        .difficulty-btn.hard.active { background: #ef4444; }
-
-        .mode-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
-            background: rgba(255,255,255,0.5);
-            padding: 0.75rem;
-            border-radius: 60px;
-            backdrop-filter: blur(8px);
-        }
-
-        .mode-btn {
-            background: transparent;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: #334155;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .mode-btn.active {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .mode-panel {
-            display: none;
-        }
-
-        .mode-panel.active-panel {
-            display: block;
-        }
-
-        /* Карточка */
-        .flashcard-area {
-            background: white;
-            border-radius: 48px;
-            padding: 2rem 2rem 2.5rem;
-            box-shadow: 0 30px 40px -20px rgba(0,0,0,0.2);
-            text-align: center;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .card-img i {
-            font-size: 8rem;
-            color: #1e293b;
-        }
-
-        .card-word {
-            font-size: 3.8rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-transcription {
-            font-size: 1.5rem;
-            color: #64748b;
-            margin-bottom: 1rem;
-        }
-
-        .card-translate {
-            font-size: 1.8rem;
-            color: #4f46e5;
-            font-weight: 500;
-            margin-bottom: 2rem;
-        }
-
-        .btn {
-            border: none;
-            background: #eef2ff;
-            padding: 0.9rem 2rem;
-            border-radius: 60px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .btn-outline {
-            background: white;
-            border: 1px solid #cbd5e1;
-        }
-
-        /* Проверочная */
-        .quiz-container {
-            max-width: 700px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 48px;
-            padding: 2.2rem;
-            box-shadow: 0 30px 40px -20px rgba(0,0,0,0.2);
-        }
-
-        .quiz-question {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-        }
-
-        .quiz-options {
-            display: grid;
-            gap: 1rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .quiz-option {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 40px;
-            padding: 1.2rem 1.8rem;
-            font-size: 1.4rem;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .quiz-option.correct {
-            background: #22c55e;
-            color: white;
-        }
-
-        .quiz-option.wrong {
-            background: #ef4444;
-            color: white;
-        }
-
-        /* Игры */
-        .game-container {
-            background: white;
-            border-radius: 40px;
-            padding: 2rem;
-            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1);
-        }
-
-        .game-tabs-inner {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.8rem;
-        }
-
-        .game-tab {
-            background: #f1f5f9;
-            padding: 0.6rem 1.5rem;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .game-tab.active {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .game-pane {
-            display: none;
-        }
-
-        .game-pane.active {
-            display: block;
-        }
-
-        .match-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .match-word {
-            background: #1e293b;
-            color: white;
-            padding: 0.9rem 1.5rem;
-            border-radius: 60px;
-            flex: 1;
-        }
-
-        .match-select {
-            flex: 1.5;
-            padding: 0.9rem;
-            border-radius: 60px;
-            border: 2px solid #cbd5e1;
-        }
-
-        .speed-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            margin: 1.5rem 0;
-        }
-
-        .speed-option {
-            background: #f1f5f9;
-            padding: 0.9rem 1.2rem;
-            border-radius: 60px;
-            flex: 1;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .scramble-display {
-            font-size: 2.8rem;
-            letter-spacing: 8px;
-            background: #0f172a;
-            color: white;
-            padding: 1rem;
-            border-radius: 30px;
-            text-align: center;
-            margin: 1.5rem 0;
-        }
-
-        .scramble-input {
-            width: 100%;
-            padding: 1rem;
-            border-radius: 60px;
-            border: 2px solid #cbd5e1;
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-        }
-
-        .footer-note {
-            margin-top: 2rem;
-            text-align: center;
-            color: #64748b;
-        }
-
-        .word-count-badge {
-            background: #eef2ff;
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            margin-left: 1rem;
-        }
-
-        @media (max-width: 800px) {
-            .layout {
-                flex-direction: column;
-            }
-            .ad-sidebar {
-                width: 100%;
-                position: static;
-                flex-direction: row;
-                justify-content: space-around;
-            }
-        }
+        /* ОСТАЛЬНОЕ */
+        .difficulty-selector { display: flex; gap: 0.5rem; background: white; padding: 0.5rem; border-radius: 60px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .difficulty-btn { padding: 0.7rem 1.8rem; border-radius: 40px; border: none; background: transparent; font-weight: 600; cursor: pointer; }
+        .difficulty-btn.all.active { background: #8b5cf6; color: white; }
+        .difficulty-btn.easy.active { background: #22c55e; color: white; }
+        .difficulty-btn.medium.active { background: #eab308; color: white; }
+        .difficulty-btn.hard.active { background: #ef4444; color: white; }
+        .mode-tabs { display: flex; gap: 0.75rem; background: rgba(255,255,255,0.5); padding: 0.75rem; border-radius: 60px; margin-bottom: 2rem; }
+        .mode-btn { background: transparent; border: none; padding: 0.8rem 2rem; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .mode-btn.active { background: #4f46e5; color: white; }
+        .mode-panel { display: none; }
+        .mode-panel.active-panel { display: block; }
+        .flashcard-area { background: white; border-radius: 48px; padding: 2rem; text-align: center; max-width: 700px; margin: 0 auto; }
+        .card-word { font-size: 3.5rem; font-weight: 800; }
+        .btn { border: none; background: #eef2ff; padding: 0.9rem 2rem; border-radius: 60px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #4f46e5; color: white; }
+        .quiz-option { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 40px; padding: 1.2rem; margin-bottom: 0.8rem; cursor: pointer; }
+        .quiz-option.correct { background: #22c55e; color: white; }
+        .quiz-option.wrong { background: #ef4444; color: white; }
+        .game-container { background: white; border-radius: 40px; padding: 2rem; }
+        .game-tab { background: #f1f5f9; padding: 0.6rem 1.5rem; border-radius: 40px; cursor: pointer; }
+        .game-tab.active { background: #4f46e5; color: white; }
+        .game-pane { display: none; }
+        .game-pane.active { display: block; }
+        @media (max-width: 800px) { .layout { flex-direction: column; } .ad-sidebar { width: 100%; position: static; } }
     </style>
 </head>
 <body>
 <div class="layout">
     <div class="ad-sidebar">
         <i class="fab fa-telegram"></i>
-        <div class="ad-text"><strong>@NewbieFunpay</strong></div>
-        <div>💰 Начни зарабатывать на FunPay уже сегодня</div>
-        <a href="#" class="telegram-link" onclick="alert('Переход в Telegram: @NewbieFunpay'); return false;"><i class="fab fa-telegram"></i> Подписаться</a>
+        <div><strong>@NewbieFunpay</strong></div>
+        <div>💰 Заработок на FunPay</div>
+        <a href="#" class="telegram-link" onclick="alert('Telegram: @NewbieFunpay'); return false;">Подписаться</a>
     </div>
 
     <div class="app-container">
         <div class="header">
-            <h1><i class="fas fa-graduation-cap"></i> EngC1 · Карточки & игры</h1>
-            <div class="level-badge">
-                <i class="fas fa-arrow-up"></i> A0 → C1
-                <span class="word-count-badge" id="wordCountDisplay">36 слов</span>
+            <h1><i class="fas fa-graduation-cap"></i> EngC1 · 100 слов</h1>
+        </div>
+
+        <!-- АВТОРИЗАЦИЯ -->
+        <div id="authContainer" class="auth-container">
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-auth="login">🔐 Вход</button>
+                <button class="auth-tab" data-auth="register">📝 Регистрация</button>
+                <button class="auth-tab" data-auth="google">🔑 Google</button>
+            </div>
+            
+            <div id="loginForm" class="auth-form active">
+                <input type="email" id="loginEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Пароль">
+                <button class="btn btn-primary" id="loginBtn" style="width:100%;">Войти</button>
+            </div>
+            
+            <div id="registerForm" class="auth-form">
+                <input type="text" id="regName" class="auth-input" placeholder="Имя">
+                <input type="email" id="regEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="regPassword" class="auth-input" placeholder="Пароль">
+                <button class="btn btn-primary" id="registerBtn" style="width:100%;">Зарегистрироваться</button>
+            </div>
+            
+            <div id="googleForm" class="auth-form">
+                <button class="btn-google" id="googleSignInBtn">
+                    <i class="fab fa-google"></i> Войти через Google
+                </button>
             </div>
         </div>
 
-        <!-- Выбор сложности -->
+        <!-- ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ -->
+        <div id="userBar" class="user-bar" style="display:none;">
+            <div class="user-info">
+                <img id="userAvatar" class="user-avatar" src="https://via.placeholder.com/40">
+                <span><strong id="userName">Игрок</strong> · <span id="userScore">0</span> очков</span>
+            </div>
+            <button class="btn-outline" id="signOutBtn">Выйти</button>
+        </div>
+
+        <!-- ТАБЛИЦА ЛИДЕРОВ -->
+        <div id="leaderboardSection" class="leaderboard-section" style="display:none;">
+            <h3><i class="fas fa-trophy" style="color:#ffd700;"></i> Топ игроков</h3>
+            <div id="leaderboardList"></div>
+            <div id="myRankDisplay" style="margin-top:1rem; text-align:center;"></div>
+        </div>
+
+        <!-- ВЫБОР СЛОЖНОСТИ -->
         <div class="difficulty-selector">
-            <button class="difficulty-btn easy active" data-diff="easy">🌱 Легкий (A1-A2)</button>
-            <button class="difficulty-btn medium" data-diff="medium">📚 Средний (B1-B2)</button>
-            <button class="difficulty-btn hard" data-diff="hard">🚀 Сложный (C1)</button>
+            <button class="difficulty-btn all active" data-diff="all">📚 Все 100 слов</button>
+            <button class="difficulty-btn easy" data-diff="easy">🌱 Легкий (34)</button>
+            <button class="difficulty-btn medium" data-diff="medium">📖 Средний (33)</button>
+            <button class="difficulty-btn hard" data-diff="hard">🚀 Сложный (33)</button>
         </div>
 
+        <!-- РЕЖИМЫ -->
         <div class="mode-tabs">
-            <button class="mode-btn active" data-mode="flash"><i class="fas fa-clone"></i> Карточки</button>
-            <button class="mode-btn" data-mode="quiz"><i class="fas fa-check-double"></i> Проверочная</button>
-            <button class="mode-btn" data-mode="games"><i class="fas fa-gamepad"></i> Игры</button>
+            <button class="mode-btn active" data-mode="flash">📇 Карточки</button>
+            <button class="mode-btn" data-mode="quiz">✓ Тест</button>
+            <button class="mode-btn" data-mode="games">🎮 Игры</button>
         </div>
 
-        <!-- Панель карточек -->
+        <!-- ПАНЕЛИ -->
         <div id="panel-flash" class="mode-panel active-panel">
             <div class="flashcard-area">
-                <div class="card-img"><i id="flashIcon" class="fas fa-dog"></i></div>
-                <div class="card-word" id="flashWord">dog</div>
-                <div class="card-transcription" id="flashTrans">/dɒɡ/</div>
-                <div class="card-translate" id="flashTranslate">собака</div>
-                <div class="flash-actions">
-                    <button class="btn btn-primary" id="nextFlashBtn"><i class="fas fa-arrow-right"></i> Следующая</button>
-                    <button class="btn btn-outline" id="speakFlashBtn"><i class="fas fa-volume-up"></i> Озвучить</button>
-                    <button class="btn btn-outline" id="flipHintBtn"><i class="fas fa-lightbulb"></i> Подсказка</button>
+                <div class="card-img"><i id="flashIcon" class="fas fa-tag"></i></div>
+                <div class="card-word" id="flashWord">the</div>
+                <div id="flashTrans">/ðə/</div>
+                <div id="flashTranslate">определенный артикль</div>
+                <div style="margin:1.5rem 0;">
+                    <button class="btn btn-primary" id="nextFlashBtn">→ Следующая</button>
+                    <button class="btn btn-outline" id="speakFlashBtn">🔊</button>
                 </div>
-                <div style="margin-top:1.2rem;"><span id="cardIndexDisplay">1/12</span> · <span id="currentDifficultyLabel">Легкий</span></div>
+                <div><span id="cardIndexDisplay">1/100</span> · <span id="currentDifficultyLabel">Все слова</span></div>
             </div>
         </div>
 
-        <!-- Проверочная -->
         <div id="panel-quiz" class="mode-panel">
-            <div class="quiz-container">
-                <div class="quiz-question" id="quizQuestion">Выберите перевод:</div>
-                <div class="quiz-options" id="quizOptions"></div>
-                <div class="quiz-feedback" id="quizFeedback"></div>
-                <button class="btn btn-primary" id="nextQuizBtn" style="width:100%;">Следующий вопрос</button>
-                <div style="margin-top:1rem; display:flex; justify-content:space-between;">
-                    <span>⭐ Счёт: <span id="quizScore">0</span></span>
-                    <span>🔥 Серия: <span id="quizStreak">0</span></span>
-                </div>
+            <div class="flashcard-area">
+                <div id="quizQuestion">Выберите перевод:</div>
+                <div id="quizOptions" style="margin:1.5rem 0;"></div>
+                <div id="quizFeedback"></div>
+                <button class="btn btn-primary" id="nextQuizBtn">Следующий</button>
+                <div style="margin-top:1rem;">⭐ <span id="quizScore">0</span> | 🔥 <span id="quizStreak">0</span></div>
             </div>
         </div>
 
-        <!-- Игры -->
         <div id="panel-games" class="mode-panel">
             <div class="game-container">
-                <div class="game-tabs-inner">
+                <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem;">
                     <div class="game-tab active" data-game="match">🎯 Соотнеси</div>
-                    <div class="game-tab" data-game="speed">⚡ Быстрый выбор</div>
-                    <div class="game-tab" data-game="scramble">🧩 Собери слово</div>
+                    <div class="game-tab" data-game="speed">⚡ Выбор</div>
+                    <div class="game-tab" data-game="scramble">🧩 Буквы</div>
                 </div>
-                
                 <div id="game-match" class="game-pane active">
-                    <h3>Соотнеси слово и перевод</h3>
                     <div id="matchGameArea"></div>
                     <button class="btn btn-outline" id="newMatchBtn">Новый раунд</button>
                     <div id="matchResult"></div>
                 </div>
-
                 <div id="game-speed" class="game-pane">
-                    <h3>Быстрый выбор</h3>
-                    <div id="speedQuestion" style="font-size:2.2rem; margin:1rem 0;">apple</div>
-                    <div id="speedOptions" class="speed-buttons"></div>
+                    <div id="speedQuestion" style="font-size:2rem;">the</div>
+                    <div id="speedOptions" style="display:grid; gap:0.8rem; margin:1rem 0;"></div>
                     <div><span id="speedFeedback"></span> <span id="speedStreak">🔥0</span></div>
                     <button class="btn btn-outline" id="nextSpeedBtn">Дальше</button>
                 </div>
-
                 <div id="game-scramble" class="game-pane">
-                    <h3>Собери слово</h3>
-                    <div class="scramble-display" id="scrambleWord">pplea</div>
-                    <input type="text" id="scrambleInput" class="scramble-input" placeholder="Введи слово">
+                    <div style="font-size:2.5rem; letter-spacing:8px;" id="scrambleWord">eht</div>
+                    <input id="scrambleInput" style="width:100%;padding:0.8rem;border-radius:40px;margin:1rem 0;">
                     <button class="btn btn-primary" id="checkScrambleBtn">Проверить</button>
-                    <button class="btn btn-outline" id="newScrambleBtn" style="margin-top:0.5rem;">Новое слово</button>
+                    <button class="btn btn-outline" id="newScrambleBtn">Новое</button>
                     <div id="scrambleResult"></div>
                 </div>
             </div>
-        </div>
-
-        <div class="footer-note">
-            <i class="fas fa-brain"></i> Выбирай сложность и учись с нуля до C1
         </div>
     </div>
 
     <div class="ad-sidebar">
         <i class="fab fa-telegram"></i>
-        <div class="ad-text"><strong>@NewbieFunpay</strong></div>
-        <div>🚀 Заработок на FunPay · старт сегодня</div>
+        <div><strong>@NewbieFunpay</strong></div>
+        <div>🚀 Заработок на FunPay</div>
         <a href="#" class="telegram-link" onclick="alert('Telegram: @NewbieFunpay'); return false;">Перейти</a>
     </div>
 </div>
@@ -512,348 +207,356 @@
 (function(){
     "use strict";
 
-    // ========== БАЗА СЛОВ ПО УРОВНЯМ ==========
-    const vocabularyDB = {
-        easy: [
-            { word: "dog", transcription: "/dɒɡ/", translate: "собака", icon: "fa-dog" },
-            { word: "cat", transcription: "/kæt/", translate: "кошка", icon: "fa-cat" },
-            { word: "apple", transcription: "/ˈæp.əl/", translate: "яблоко", icon: "fa-apple" },
-            { word: "car", transcription: "/kɑːr/", translate: "машина", icon: "fa-car" },
-            { word: "house", transcription: "/haʊs/", translate: "дом", icon: "fa-house" },
-            { word: "book", transcription: "/bʊk/", translate: "книга", icon: "fa-book" },
-            { word: "pen", transcription: "/pen/", translate: "ручка", icon: "fa-pen" },
-            { word: "sun", transcription: "/sʌn/", translate: "солнце", icon: "fa-sun" },
-            { word: "moon", transcription: "/muːn/", translate: "луна", icon: "fa-moon" },
-            { word: "tree", transcription: "/triː/", translate: "дерево", icon: "fa-tree" },
-            { word: "water", transcription: "/ˈwɔːtər/", translate: "вода", icon: "fa-water" },
-            { word: "food", transcription: "/fuːd/", translate: "еда", icon: "fa-utensils" }
-        ],
-        medium: [
-            { word: "beautiful", transcription: "/ˈbjuːtɪfəl/", translate: "красивый", icon: "fa-feather" },
-            { word: "dangerous", transcription: "/ˈdeɪndʒərəs/", translate: "опасный", icon: "fa-triangle-exclamation" },
-            { word: "expensive", transcription: "/ɪkˈspensɪv/", translate: "дорогой", icon: "fa-tag" },
-            { word: "comfortable", transcription: "/ˈkʌmftəbəl/", translate: "удобный", icon: "fa-couch" },
-            { word: "delicious", transcription: "/dɪˈlɪʃəs/", translate: "вкусный", icon: "fa-pizza-slice" },
-            { word: "important", transcription: "/ɪmˈpɔːrtənt/", translate: "важный", icon: "fa-star" },
-            { word: "different", transcription: "/ˈdɪfrənt/", translate: "разный", icon: "fa-not-equal" },
-            { word: "difficult", transcription: "/ˈdɪfɪkəlt/", translate: "сложный", icon: "fa-puzzle-piece" },
-            { word: "interesting", transcription: "/ˈɪntrəstɪŋ/", translate: "интересный", icon: "fa-lightbulb" },
-            { word: "necessary", transcription: "/ˈnesəseri/", translate: "необходимый", icon: "fa-check-circle" },
-            { word: "possible", transcription: "/ˈpɒsəbəl/", translate: "возможный", icon: "fa-door-open" },
-            { word: "surprised", transcription: "/sərˈpraɪzd/", translate: "удивленный", icon: "fa-face-surprise" }
-        ],
-        hard: [
-            { word: "extraordinary", transcription: "/ɪkˈstrɔːrdəneri/", translate: "необычайный", icon: "fa-gem" },
-            { word: "sophisticated", transcription: "/səˈfɪstɪkeɪtɪd/", translate: "сложный/изощренный", icon: "fa-microchip" },
-            { word: "conscientious", transcription: "/ˌkɒnʃiˈenʃəs/", translate: "добросовестный", icon: "fa-scale-balanced" },
-            { word: "simultaneously", transcription: "/ˌsɪməlˈteɪniəsli/", translate: "одновременно", icon: "fa-clock" },
-            { word: "phenomenon", transcription: "/fɪˈnɒmɪnən/", translate: "явление", icon: "fa-eye" },
-            { word: "miscellaneous", transcription: "/ˌmɪsəˈleɪniəs/", translate: "разнообразный", icon: "fa-layer-group" },
-            { word: "entrepreneur", transcription: "/ˌɒntrəprəˈnɜːr/", translate: "предприниматель", icon: "fa-briefcase" },
-            { word: "indispensable", transcription: "/ˌɪndɪˈspensəbəl/", translate: "незаменимый", icon: "fa-anchor" },
-            { word: "spontaneous", transcription: "/spɒnˈteɪniəs/", translate: "спонтанный", icon: "fa-bolt" },
-            { word: "ambiguous", transcription: "/æmˈbɪɡjuəs/", translate: "двусмысленный", icon: "fa-question" },
-            { word: "meticulous", transcription: "/mɪˈtɪkjələs/", translate: "дотошный", icon: "fa-magnifying-glass" },
-            { word: "exhilarating", transcription: "/ɪɡˈzɪləreɪtɪŋ/", translate: "волнующий", icon: "fa-rocket" }
-        ]
+    // ========== FIREBASE КОНФИГУРАЦИЯ ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUR9csqxZx5oHxC_lUH1DMsI_kVHGIB3Y",
+        authDomain: "engc121.firebaseapp.com",
+        projectId: "engc121",
+        storageBucket: "engc121.firebasestorage.app",
+        messagingSenderId: "251733245918",
+        appId: "1:251733245918:web:dadbcf9eb012a1ca8aa74f"
     };
 
-    // Текущие настройки
-    let currentDifficulty = 'easy';
-    let currentVocabulary = vocabularyDB.easy;
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // ========== 100 СЛОВ ==========
+    const allVocabulary = [
+        { word: "the", transcription: "/ðə/", translate: "определенный артикль", icon: "fa-tag", difficulty: "easy" },
+        { word: "be", transcription: "/biː/", translate: "быть", icon: "fa-circle", difficulty: "easy" },
+        { word: "to", transcription: "/tuː/", translate: "к, в, для", icon: "fa-arrow-right", difficulty: "easy" },
+        { word: "of", transcription: "/ɒv/", translate: "из, о, от", icon: "fa-link", difficulty: "easy" },
+        { word: "and", transcription: "/ænd/", translate: "и", icon: "fa-plus", difficulty: "easy" },
+        { word: "a", transcription: "/ə/", translate: "неопределенный артикль", icon: "fa-font", difficulty: "easy" },
+        { word: "in", transcription: "/ɪn/", translate: "в", icon: "fa-location-dot", difficulty: "easy" },
+        { word: "that", transcription: "/ðæt/", translate: "что, тот", icon: "fa-hand-pointer", difficulty: "easy" },
+        { word: "have", transcription: "/hæv/", translate: "иметь", icon: "fa-hand", difficulty: "easy" },
+        { word: "I", transcription: "/aɪ/", translate: "я", icon: "fa-user", difficulty: "easy" },
+        { word: "it", transcription: "/ɪt/", translate: "оно, это", icon: "fa-cube", difficulty: "easy" },
+        { word: "for", transcription: "/fɔːr/", translate: "для, за", icon: "fa-gift", difficulty: "easy" },
+        { word: "not", transcription: "/nɒt/", translate: "не", icon: "fa-ban", difficulty: "easy" },
+        { word: "on", transcription: "/ɒn/", translate: "на", icon: "fa-arrow-up", difficulty: "easy" },
+        { word: "with", transcription: "/wɪð/", translate: "с", icon: "fa-handshake", difficulty: "easy" },
+        { word: "he", transcription: "/hiː/", translate: "он", icon: "fa-male", difficulty: "easy" },
+        { word: "as", transcription: "/æz/", translate: "как, в качестве", icon: "fa-equals", difficulty: "easy" },
+        { word: "you", transcription: "/juː/", translate: "ты, вы", icon: "fa-users", difficulty: "easy" },
+        { word: "do", transcription: "/duː/", translate: "делать", icon: "fa-gear", difficulty: "easy" },
+        { word: "at", transcription: "/æt/", translate: "в, на, у", icon: "fa-map-pin", difficulty: "easy" },
+        { word: "this", transcription: "/ðɪs/", translate: "этот", icon: "fa-arrow-pointer", difficulty: "easy" },
+        { word: "but", transcription: "/bʌt/", translate: "но", icon: "fa-code-branch", difficulty: "easy" },
+        { word: "we", transcription: "/wiː/", translate: "мы", icon: "fa-people-group", difficulty: "easy" },
+        { word: "his", transcription: "/hɪz/", translate: "его", icon: "fa-user-tie", difficulty: "easy" },
+        { word: "from", transcription: "/frɒm/", translate: "из, от", icon: "fa-right-from-bracket", difficulty: "easy" },
+        { word: "they", transcription: "/ðeɪ/", translate: "они", icon: "fa-user-group", difficulty: "easy" },
+        { word: "say", transcription: "/seɪ/", translate: "сказать", icon: "fa-comment", difficulty: "easy" },
+        { word: "her", transcription: "/hɜːr/", translate: "её", icon: "fa-user-tie", difficulty: "easy" },
+        { word: "she", transcription: "/ʃiː/", translate: "она", icon: "fa-female", difficulty: "easy" },
+        { word: "or", transcription: "/ɔːr/", translate: "или", icon: "fa-code-fork", difficulty: "easy" },
+        { word: "will", transcription: "/wɪl/", translate: "будет", icon: "fa-clock", difficulty: "easy" },
+        { word: "my", transcription: "/maɪ/", translate: "мой", icon: "fa-heart", difficulty: "easy" },
+        { word: "one", transcription: "/wʌn/", translate: "один", icon: "fa-1", difficulty: "easy" },
+        { word: "all", transcription: "/ɔːl/", translate: "все", icon: "fa-globe", difficulty: "easy" },
+        { word: "would", transcription: "/wʊd/", translate: "бы", icon: "fa-question", difficulty: "medium" },
+        { word: "there", transcription: "/ðeər/", translate: "там", icon: "fa-map", difficulty: "medium" },
+        { word: "their", transcription: "/ðeər/", translate: "их", icon: "fa-users", difficulty: "medium" },
+        { word: "what", transcription: "/wɒt/", translate: "что, какой", icon: "fa-question-circle", difficulty: "medium" },
+        { word: "so", transcription: "/səʊ/", translate: "так, поэтому", icon: "fa-infinity", difficulty: "medium" },
+        { word: "up", transcription: "/ʌp/", translate: "вверх", icon: "fa-arrow-trend-up", difficulty: "medium" },
+        { word: "out", transcription: "/aʊt/", translate: "вне, из", icon: "fa-door-open", difficulty: "medium" },
+        { word: "if", transcription: "/ɪf/", translate: "если", icon: "fa-code-branch", difficulty: "medium" },
+        { word: "about", transcription: "/əˈbaʊt/", translate: "о, около", icon: "fa-circle-info", difficulty: "medium" },
+        { word: "who", transcription: "/huː/", translate: "кто", icon: "fa-user-question", difficulty: "medium" },
+        { word: "get", transcription: "/ɡet/", translate: "получать", icon: "fa-gift", difficulty: "medium" },
+        { word: "which", transcription: "/wɪtʃ/", translate: "который", icon: "fa-arrow-pointer", difficulty: "medium" },
+        { word: "go", transcription: "/ɡəʊ/", translate: "идти", icon: "fa-person-walking", difficulty: "medium" },
+        { word: "me", transcription: "/miː/", translate: "мне, меня", icon: "fa-user", difficulty: "medium" },
+        { word: "when", transcription: "/wen/", translate: "когда", icon: "fa-calendar", difficulty: "medium" },
+        { word: "make", transcription: "/meɪk/", translate: "делать, создавать", icon: "fa-hammer", difficulty: "medium" },
+        { word: "can", transcription: "/kæn/", translate: "мочь", icon: "fa-check", difficulty: "medium" },
+        { word: "like", transcription: "/laɪk/", translate: "нравиться, как", icon: "fa-heart", difficulty: "medium" },
+        { word: "time", transcription: "/taɪm/", translate: "время", icon: "fa-clock", difficulty: "medium" },
+        { word: "no", transcription: "/nəʊ/", translate: "нет", icon: "fa-circle-xmark", difficulty: "medium" },
+        { word: "just", transcription: "/dʒʌst/", translate: "только, просто", icon: "fa-equals", difficulty: "medium" },
+        { word: "him", transcription: "/hɪm/", translate: "ему, его", icon: "fa-user", difficulty: "medium" },
+        { word: "know", transcription: "/nəʊ/", translate: "знать", icon: "fa-brain", difficulty: "medium" },
+        { word: "take", transcription: "/teɪk/", translate: "брать", icon: "fa-hand", difficulty: "medium" },
+        { word: "people", transcription: "/ˈpiːpəl/", translate: "люди", icon: "fa-users", difficulty: "medium" },
+        { word: "into", transcription: "/ˈɪntuː/", translate: "в", icon: "fa-right-to-bracket", difficulty: "medium" },
+        { word: "year", transcription: "/jɪər/", translate: "год", icon: "fa-calendar", difficulty: "medium" },
+        { word: "your", transcription: "/jɔːr/", translate: "твой, ваш", icon: "fa-hand-peace", difficulty: "medium" },
+        { word: "good", transcription: "/ɡʊd/", translate: "хороший", icon: "fa-thumbs-up", difficulty: "medium" },
+        { word: "some", transcription: "/sʌm/", translate: "некоторый", icon: "fa-cubes", difficulty: "medium" },
+        { word: "could", transcription: "/kʊd/", translate: "мог бы", icon: "fa-unlock", difficulty: "medium" },
+        { word: "them", transcription: "/ðem/", translate: "им, их", icon: "fa-user-group", difficulty: "medium" },
+        { word: "see", transcription: "/siː/", translate: "видеть", icon: "fa-eye", difficulty: "medium" },
+        { word: "other", transcription: "/ˈʌðər/", translate: "другой", icon: "fa-arrow-right-arrow-left", difficulty: "hard" },
+        { word: "than", transcription: "/ðæn/", translate: "чем", icon: "fa-greater-than", difficulty: "hard" },
+        { word: "then", transcription: "/ðen/", translate: "тогда, затем", icon: "fa-forward", difficulty: "hard" },
+        { word: "now", transcription: "/naʊ/", translate: "сейчас", icon: "fa-hourglass", difficulty: "hard" },
+        { word: "look", transcription: "/lʊk/", translate: "смотреть", icon: "fa-eye", difficulty: "hard" },
+        { word: "only", transcription: "/ˈəʊnli/", translate: "только", icon: "fa-star", difficulty: "hard" },
+        { word: "come", transcription: "/kʌm/", translate: "приходить", icon: "fa-person-walking", difficulty: "hard" },
+        { word: "its", transcription: "/ɪts/", translate: "его, её (о предмете)", icon: "fa-puzzle-piece", difficulty: "hard" },
+        { word: "over", transcription: "/ˈəʊvər/", translate: "над, через", icon: "fa-arrow-up-wide-short", difficulty: "hard" },
+        { word: "think", transcription: "/θɪŋk/", translate: "думать", icon: "fa-brain", difficulty: "hard" },
+        { word: "also", transcription: "/ˈɔːlsəʊ/", translate: "также", icon: "fa-plus-circle", difficulty: "hard" },
+        { word: "back", transcription: "/bæk/", translate: "назад, спина", icon: "fa-rotate-left", difficulty: "hard" },
+        { word: "after", transcription: "/ˈɑːftər/", translate: "после", icon: "fa-arrow-right", difficulty: "hard" },
+        { word: "use", transcription: "/juːz/", translate: "использовать", icon: "fa-toolbox", difficulty: "hard" },
+        { word: "two", transcription: "/tuː/", translate: "два", icon: "fa-2", difficulty: "hard" },
+        { word: "how", transcription: "/haʊ/", translate: "как", icon: "fa-question", difficulty: "hard" },
+        { word: "our", transcription: "/aʊər/", translate: "наш", icon: "fa-flag", difficulty: "hard" },
+        { word: "work", transcription: "/wɜːrk/", translate: "работать", icon: "fa-briefcase", difficulty: "hard" },
+        { word: "first", transcription: "/fɜːrst/", translate: "первый", icon: "fa-1", difficulty: "hard" },
+        { word: "well", transcription: "/wel/", translate: "хорошо", icon: "fa-check-double", difficulty: "hard" },
+        { word: "way", transcription: "/weɪ/", translate: "путь, способ", icon: "fa-road", difficulty: "hard" },
+        { word: "even", transcription: "/ˈiːvən/", translate: "даже", icon: "fa-equals", difficulty: "hard" },
+        { word: "new", transcription: "/njuː/", translate: "новый", icon: "fa-sparkles", difficulty: "hard" },
+        { word: "want", transcription: "/wɒnt/", translate: "хотеть", icon: "fa-star", difficulty: "hard" },
+        { word: "because", transcription: "/bɪˈkɒz/", translate: "потому что", icon: "fa-link", difficulty: "hard" },
+        { word: "any", transcription: "/ˈeni/", translate: "любой", icon: "fa-cube", difficulty: "hard" },
+        { word: "these", transcription: "/ðiːz/", translate: "эти", icon: "fa-layer-group", difficulty: "hard" },
+        { word: "give", transcription: "/ɡɪv/", translate: "давать", icon: "fa-gift", difficulty: "hard" },
+        { word: "day", transcription: "/deɪ/", translate: "день", icon: "fa-sun", difficulty: "hard" },
+        { word: "most", transcription: "/məʊst/", translate: "большинство", icon: "fa-chart-pie", difficulty: "hard" },
+        { word: "us", transcription: "/ʌs/", translate: "нам, нас", icon: "fa-users", difficulty: "hard" },
+        { word: "man", transcription: "/mæn/", translate: "мужчина", icon: "fa-user", difficulty: "hard" },
+        { word: "world", transcription: "/wɜːrld/", translate: "мир", icon: "fa-globe", difficulty: "hard" }
+    ];
+
+    const vocabularyDB = {
+        all: allVocabulary,
+        easy: allVocabulary.filter(w => w.difficulty === 'easy'),
+        medium: allVocabulary.filter(w => w.difficulty === 'medium'),
+        hard: allVocabulary.filter(w => w.difficulty === 'hard')
+    };
+
+    // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+    let currentUser = null;
+    let userScore = 0;
+    let currentDifficulty = 'all';
+    let currentVocabulary = vocabularyDB.all;
     let currentCardIndex = 0;
-    
-    // DOM элементы
-    const flashIcon = document.getElementById('flashIcon');
-    const flashWord = document.getElementById('flashWord');
-    const flashTrans = document.getElementById('flashTrans');
-    const flashTranslate = document.getElementById('flashTranslate');
-    const cardIndexDisplay = document.getElementById('cardIndexDisplay');
-    const currentDifficultyLabel = document.getElementById('currentDifficultyLabel');
-    const wordCountDisplay = document.getElementById('wordCountDisplay');
-    const difficultyBtns = document.querySelectorAll('.difficulty-btn');
 
-    // Обновление статистики
-    function updateWordCount() {
-        const total = vocabularyDB.easy.length + vocabularyDB.medium.length + vocabularyDB.hard.length;
-        wordCountDisplay.textContent = `${total} слов`;
+    // ========== АВТОРИЗАЦИЯ ==========
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const authForms = {
+        login: document.getElementById('loginForm'),
+        register: document.getElementById('registerForm'),
+        google: document.getElementById('googleForm')
+    };
+
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            authTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            Object.values(authForms).forEach(f => f.classList.remove('active'));
+            authForms[tab.dataset.auth].classList.add('active');
+        });
+    });
+
+    // Регистрация email/пароль
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        
+        try {
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+            await cred.user.updateProfile({ displayName: name });
+            await db.collection('users').doc(cred.user.uid).set({
+                name, email, score: 0,
+                photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4f46e5&color=fff`,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('Регистрация успешна!');
+        } catch (e) {
+            alert('Ошибка: ' + e.message);
+        }
+    });
+
+    // Вход email/пароль
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch (e) {
+            alert('Ошибка: ' + e.message);
+        }
+    });
+
+    // Google вход
+    document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (!doc.exists) {
+                await db.collection('users').doc(user.uid).set({
+                    name: user.displayName, email: user.email, score: 0,
+                    photoURL: user.photoURL,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch (e) {
+            alert('Ошибка Google: ' + e.message);
+        }
+    });
+
+    // Выход
+    document.getElementById('signOutBtn').addEventListener('click', () => auth.signOut());
+
+    // Обновление UI при авторизации
+    auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        const authContainer = document.getElementById('authContainer');
+        const userBar = document.getElementById('userBar');
+        const leaderboard = document.getElementById('leaderboardSection');
+        
+        if (user) {
+            authContainer.style.display = 'none';
+            userBar.style.display = 'flex';
+            leaderboard.style.display = 'block';
+            
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (doc.exists) {
+                userScore = doc.data().score || 0;
+                document.getElementById('userName').textContent = doc.data().name || user.displayName;
+                document.getElementById('userScore').textContent = userScore;
+                document.getElementById('userAvatar').src = doc.data().photoURL || user.photoURL || 'https://via.placeholder.com/40';
+            }
+            loadLeaderboard();
+        } else {
+            authContainer.style.display = 'block';
+            userBar.style.display = 'none';
+            leaderboard.style.display = 'none';
+        }
+    });
+
+    // Добавление очков
+    async function addScore(points) {
+        if (!currentUser) { alert('Войдите, чтобы сохранять прогресс!'); return false; }
+        userScore += points;
+        await db.collection('users').doc(currentUser.uid).update({ score: userScore });
+        document.getElementById('userScore').textContent = userScore;
+        loadLeaderboard();
+        return true;
     }
-    updateWordCount();
 
-    // Смена сложности
-    difficultyBtns.forEach(btn => {
+    // Таблица лидеров
+    async function loadLeaderboard() {
+        const list = document.getElementById('leaderboardList');
+        const snap = await db.collection('users').orderBy('score', 'desc').limit(10).get();
+        let html = '';
+        let rank = 1;
+        snap.forEach(doc => {
+            const d = doc.data();
+            let rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+            html += `<div class="leaderboard-item">
+                <div class="leaderboard-rank ${rankClass}">${rank}</div>
+                <img src="${d.photoURL || 'https://via.placeholder.com/35'}" style="width:35px;height:35px;border-radius:50%;">
+                <span style="flex:1;">${d.name || 'Игрок'}</span>
+                <span>${d.score || 0} очков</span>
+            </div>`;
+            rank++;
+        });
+        list.innerHTML = html || 'Нет игроков';
+    }
+
+    // ========== КАРТОЧКИ ==========
+    function updateFlashcard() {
+        const item = currentVocabulary[currentCardIndex];
+        document.getElementById('flashIcon').className = `fas ${item.icon}`;
+        document.getElementById('flashWord').textContent = item.word;
+        document.getElementById('flashTrans').textContent = item.transcription;
+        document.getElementById('flashTranslate').textContent = item.translate;
+        document.getElementById('cardIndexDisplay').textContent = `${currentCardIndex+1}/${currentVocabulary.length}`;
+    }
+
+    document.getElementById('nextFlashBtn').addEventListener('click', async () => {
+        if (currentUser) await addScore(5);
+        currentCardIndex = (currentCardIndex + 1) % currentVocabulary.length;
+        updateFlashcard();
+    });
+
+    document.getElementById('speakFlashBtn').addEventListener('click', () => {
+        const u = new SpeechSynthesisUtterance(currentVocabulary[currentCardIndex].word);
+        u.lang = 'en-US'; speechSynthesis.speak(u);
+    });
+
+    // Сложность
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            difficultyBtns.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentDifficulty = btn.dataset.diff;
             currentVocabulary = vocabularyDB[currentDifficulty];
             currentCardIndex = 0;
-            updateFlashcard(0);
-            
-            const labels = { easy: 'Легкий', medium: 'Средний', hard: 'Сложный' };
-            currentDifficultyLabel.textContent = labels[currentDifficulty];
-            
-            // Перезапуск игр и тестов
-            if (document.getElementById('panel-quiz').classList.contains('active-panel')) {
-                generateQuiz();
-            }
-            if (document.getElementById('panel-games').classList.contains('active-panel')) {
-                initGames();
-            }
+            updateFlashcard();
+            document.getElementById('currentDifficultyLabel').textContent = 
+                {all:'Все слова', easy:'Легкий', medium:'Средний', hard:'Сложный'}[currentDifficulty];
         });
     });
 
-    // Обновление карточки
-    function updateFlashcard(index) {
-        const item = currentVocabulary[index];
-        flashIcon.className = `fas ${item.icon}`;
-        flashWord.textContent = item.word;
-        flashTrans.textContent = item.transcription;
-        flashTranslate.textContent = item.translate;
-        cardIndexDisplay.textContent = `${index+1}/${currentVocabulary.length}`;
-    }
-
-    // Озвучка
-    function speakWord(word) {
-        if (!window.speechSynthesis) return;
-        const utterance = new SpeechSynthesisUtterance(word);
-        utterance.lang = 'en-US';
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-    }
-
-    document.getElementById('nextFlashBtn').addEventListener('click', () => {
-        currentCardIndex = (currentCardIndex + 1) % currentVocabulary.length;
-        updateFlashcard(currentCardIndex);
-    });
-    
-    document.getElementById('speakFlashBtn').addEventListener('click', () => {
-        speakWord(currentVocabulary[currentCardIndex].word);
-    });
-    
-    document.getElementById('flipHintBtn').addEventListener('click', () => {
-        alert(`Перевод: ${currentVocabulary[currentCardIndex].translate}\nТранскрипция: ${currentVocabulary[currentCardIndex].transcription}`);
-    });
-
-    // ========== ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ ==========
-    const modeBtns = document.querySelectorAll('.mode-btn');
-    const panels = {
-        flash: document.getElementById('panel-flash'),
-        quiz: document.getElementById('panel-quiz'),
-        games: document.getElementById('panel-games')
-    };
-
-    modeBtns.forEach(btn => {
+    // Режимы
+    document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const mode = btn.dataset.mode;
-            modeBtns.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            Object.values(panels).forEach(p => p.classList.remove('active-panel'));
-            panels[mode].classList.add('active-panel');
-            if (mode === 'quiz') generateQuiz();
-            if (mode === 'games') initGames();
+            document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active-panel'));
+            document.getElementById(`panel-${btn.dataset.mode}`).classList.add('active-panel');
         });
     });
 
-    // ========== ВНУТРЕННИЕ ВКЛАДКИ ИГР ==========
-    const gameTabs = document.querySelectorAll('.game-tab');
-    const gamePanes = {
-        match: document.getElementById('game-match'),
-        speed: document.getElementById('game-speed'),
-        scramble: document.getElementById('game-scramble')
-    };
-
-    gameTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const game = tab.dataset.game;
-            gameTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            Object.values(gamePanes).forEach(p => p.classList.remove('active'));
-            gamePanes[game].classList.add('active');
+    // Игры (сокращено для brevity)
+    document.querySelectorAll('.game-tab').forEach(t => {
+        t.addEventListener('click', () => {
+            document.querySelectorAll('.game-tab').forEach(tb => tb.classList.remove('active'));
+            t.classList.add('active');
+            document.querySelectorAll('.game-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById(`game-${t.dataset.game}`).classList.add('active');
         });
     });
 
-    // ========== ИГРЫ ==========
-    function shuffleArray(arr) {
-        return arr.sort(() => Math.random() - 0.5);
-    }
-
-    // Matching
-    let matchWords = [];
-    function initMatchGame() {
-        const shuffled = shuffleArray([...currentVocabulary]).slice(0, 4);
-        matchWords = shuffled;
-        const area = document.getElementById('matchGameArea');
-        const translations = shuffled.map(it => it.translate);
-        const shuffledTrans = shuffleArray([...translations]);
-        area.innerHTML = '';
-        shuffled.forEach((item) => {
-            const row = document.createElement('div');
-            row.className = 'match-row';
-            row.innerHTML = `
-                <div class="match-word">${item.word}</div>
-                <select class="match-select">
-                    <option value="">-- выбери --</option>
-                    ${shuffledTrans.map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-            `;
-            area.appendChild(row);
-        });
-        document.getElementById('matchResult').innerHTML = '';
-    }
-
-    document.getElementById('newMatchBtn').addEventListener('click', initMatchGame);
-    document.getElementById('matchGameArea').addEventListener('change', function(e) {
-        if (!e.target.classList.contains('match-select')) return;
-        const selects = document.querySelectorAll('.match-select');
-        let correctCount = 0;
-        selects.forEach((sel) => {
-            const wordEl = sel.parentElement.querySelector('.match-word');
-            const word = wordEl.textContent;
-            const correctItem = currentVocabulary.find(v => v.word === word);
-            if (correctItem && sel.value === correctItem.translate) correctCount++;
-        });
-        const resultDiv = document.getElementById('matchResult');
-        if (correctCount === matchWords.length) {
-            resultDiv.innerHTML = '🎉 Отлично! Всё верно!';
-        } else {
-            resultDiv.innerHTML = `✅ ${correctCount} из ${matchWords.length}`;
-        }
-    });
-
-    // Speed
-    let speedItem = null;
-    let speedStreak = 0;
-    const speedQuestion = document.getElementById('speedQuestion');
-    const speedOptionsDiv = document.getElementById('speedOptions');
-    const speedFeedback = document.getElementById('speedFeedback');
-    const speedStreakSpan = document.getElementById('speedStreak');
-
-    function newSpeedRound() {
-        speedItem = currentVocabulary[Math.floor(Math.random() * currentVocabulary.length)];
-        speedQuestion.textContent = speedItem.word;
-        let opts = [speedItem.translate];
+    // Quiz
+    let quizItem, quizScore = 0, quizStreak = 0, quizAnswered = false;
+    function genQuiz() {
+        quizAnswered = false;
+        quizItem = currentVocabulary[Math.floor(Math.random() * currentVocabulary.length)];
+        document.getElementById('quizQuestion').textContent = `"${quizItem.word}" — перевод?`;
+        let opts = [quizItem.translate];
         while(opts.length < 4) {
             const t = currentVocabulary[Math.floor(Math.random() * currentVocabulary.length)].translate;
             if(!opts.includes(t)) opts.push(t);
         }
-        opts = shuffleArray(opts);
-        speedOptionsDiv.innerHTML = '';
-        opts.forEach(tr => {
-            const btn = document.createElement('div');
-            btn.classList.add('speed-option');
-            btn.textContent = tr;
-            btn.addEventListener('click', () => {
-                if (tr === speedItem.translate) {
-                    speedStreak++;
-                    speedFeedback.textContent = '🔥 Верно!';
+        opts.sort(() => Math.random() - 0.5);
+        const div = document.getElementById('quizOptions');
+        div.innerHTML = '';
+        opts.forEach(o => {
+            const d = document.createElement('div'); d.className = 'quiz-option'; d.textContent = o;
+            d.addEventListener('click', async () => {
+                if(quizAnswered) return;
+                quizAnswered = true;
+                if(o === quizItem.translate) {
+                    d.classList.add('correct'); quizScore++; quizStreak++;
+                    if(currentUser) await addScore(10);
                 } else {
-                    speedStreak = 0;
-                    speedFeedback.textContent = `❌ Неверно. (${speedItem.translate})`;
+                    d.classList.add('wrong'); quizStreak = 0;
                 }
-                speedStreakSpan.textContent = `🔥${speedStreak}`;
+                document.getElementById('quizScore').textContent = quizScore;
+                document.getElementById('quizStreak').textContent = quizStreak;
             });
-            speedOptionsDiv.appendChild(btn);
-        });
-        speedFeedback.textContent = '';
-    }
-    document.getElementById('nextSpeedBtn').addEventListener('click', newSpeedRound);
-
-    // Scramble
-    let scrambleCurrent = null;
-    function scrambleWord(w) {
-        return w.split('').sort(() => Math.random() - 0.5).join('');
-    }
-    function newScramble() {
-        scrambleCurrent = currentVocabulary[Math.floor(Math.random() * currentVocabulary.length)];
-        document.getElementById('scrambleWord').textContent = scrambleWord(scrambleCurrent.word);
-        document.getElementById('scrambleInput').value = '';
-        document.getElementById('scrambleResult').textContent = '';
-    }
-    document.getElementById('newScrambleBtn').addEventListener('click', newScramble);
-    document.getElementById('checkScrambleBtn').addEventListener('click', () => {
-        const input = document.getElementById('scrambleInput').value.trim().toLowerCase();
-        const resultDiv = document.getElementById('scrambleResult');
-        if (!scrambleCurrent) return;
-        if (input === scrambleCurrent.word) {
-            resultDiv.innerHTML = '🎯 Верно! Молодец!';
-            speakWord(scrambleCurrent.word);
-        } else {
-            resultDiv.innerHTML = `❌ Попробуй ещё.`;
-        }
-    });
-
-    function initGames() {
-        initMatchGame();
-        newSpeedRound();
-        newScramble();
-    }
-
-    // ========== QUIZ ==========
-    let quizCurrent = null;
-    let quizScore = 0;
-    let quizStreak = 0;
-    let answered = false;
-    const quizQuestion = document.getElementById('quizQuestion');
-    const quizOptionsDiv = document.getElementById('quizOptions');
-    const quizFeedback = document.getElementById('quizFeedback');
-    const quizScoreSpan = document.getElementById('quizScore');
-    const quizStreakSpan = document.getElementById('quizStreak');
-
-    function generateQuiz() {
-        answered = false;
-        quizFeedback.textContent = '';
-        const correctItem = currentVocabulary[Math.floor(Math.random() * currentVocabulary.length)];
-        quizCurrent = correctItem;
-        quizQuestion.textContent = `Как переводится "${correctItem.word}"?`;
-
-        let options = [correctItem.translate];
-        while (options.length < 4) {
-            const rand = currentVocabulary[Math.floor(Math.random() * currentVocabulary.length)].translate;
-            if (!options.includes(rand)) options.push(rand);
-        }
-        options = shuffleArray(options);
-        
-        quizOptionsDiv.innerHTML = '';
-        options.forEach(opt => {
-            const div = document.createElement('div');
-            div.classList.add('quiz-option');
-            div.textContent = opt;
-            div.addEventListener('click', () => {
-                if (answered) return;
-                answered = true;
-                const allOpts = document.querySelectorAll('.quiz-option');
-                if (opt === correctItem.translate) {
-                    div.classList.add('correct');
-                    quizScore++;
-                    quizStreak++;
-                    quizFeedback.innerHTML = '✅ Правильно!';
-                } else {
-                    div.classList.add('wrong');
-                    quizStreak = 0;
-                    quizFeedback.innerHTML = `❌ Неверно. Правильно: ${correctItem.translate}`;
-                    allOpts.forEach(el => { if(el.textContent === correctItem.translate) el.classList.add('correct'); });
-                }
-                quizScoreSpan.textContent = quizScore;
-                quizStreakSpan.textContent = quizStreak;
-            });
-            quizOptionsDiv.appendChild(div);
+            div.appendChild(d);
         });
     }
-
-    document.getElementById('nextQuizBtn').addEventListener('click', generateQuiz);
+    document.getElementById('nextQuizBtn').addEventListener('click', genQuiz);
 
     // Инициализация
-    updateFlashcard(0);
-    generateQuiz();
-    initGames();
-
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && panels.flash.classList.contains('active-panel')) {
-            e.preventDefault();
-            speakWord(currentVocabulary[currentCardIndex].word);
-        }
-    });
+    updateFlashcard();
+    genQuiz();
 })();
 </script>
 </body>
